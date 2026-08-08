@@ -1,522 +1,522 @@
-5763  ioctl(72, BINDER_WRITE_READ, 0x715b1e2180 <unfinished ...>
-5762  ioctl(72, BINDER_WRITE_READ, 0x715b2e0180 <unfinished ...>
-5754  rt_sigtimedwait([QUIT USR1 RTMIN], NULL, NULL, 8 <unfinished ...>
-5755  read(70 <unfinished ...>
-4099  close(80 <unfinished ...>
-5767  futex(0xb4000072c3497348, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
-5761  ioctl(72, BINDER_WRITE_READ, 0x715b3de180 <unfinished ...>
-4099  <... close resumed>)              = 0
-4099  openat(AT_FDCWD, "/data/resource-cache/data@resource-cache@com.android.systemui-dynamic-6t3v.frro@idmap", O_RDONLY|O_CLOEXEC) = 80
-5760  futex(0xb40000731343d5e0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
-5759  futex(0xb400007313426360, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
-5758  futex(0xb400007313435930, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
-5757  restart_syscall(<... resuming interrupted futex ...> <unfinished ...>
-5756  futex(0xb4000072034275c8, FUTEX_WAIT_PRIVATE, 60, NULL <unfinished ...>
-4099  lseek(80, 0, SEEK_END)            = 4012
-4099  fstatfs(80, {f_type=EXT2_SUPER_MAGIC, f_bsize=4096, f_blocks=2481474, f_bfree=1101343, f_bavail=1064479, f_files=647168, f_ffree=619393, f_fsid={val=[0xeb350b93, 0xf2a50bc0]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOSUID|ST_NODEV|ST_NOATIME}) = 0
-4099  mmap(NULL, 4012, PROT_READ, MAP_SHARED, 80, 0) = 0x74560ec000
-4099  close(80)                         = 0
-4099  openat(AT_FDCWD, "/data/resource-cache/data@resource-cache@com.android.systemui-dynamic-6t3v.frro@idmap", O_RDONLY|O_CLOEXEC|O_PATH) = 80
-4099  fstat(80, {st_mode=S_IFREG|0644, st_size=4012, ...}) = 0
-4099  openat(AT_FDCWD, "/data/resource-cache/com.android.systemui-dynamic-6t3v.frro", O_RDONLY|O_CLOEXEC) = 81
-4099  pread64(81, "FRRO", 4, 0)         = 4
-4099  openat(AT_FDCWD, "/data/resource-cache/com.android.systemui-dynamic-6t3v.frro", O_RDONLY|O_CLOEXEC) = 82
-4099  pread64(82, "FRRO", 4, 0)         = 4
-4099  close(82)                         = 0
-4099  close(81)                         = 0
-4099  openat(AT_FDCWD, "/data/resource-cache/data@resource-cache@com.android.systemui-neutral-yrAU.frro@idmap", O_RDONLY|O_CLOEXEC) = 81
-4099  lseek(81, 0, SEEK_END)            = 892
-4099  fstatfs(81, {f_type=EXT2_SUPER_MAGIC, f_bsize=4096, f_blocks=2481474, f_bfree=1101343, f_bavail=1064479, f_files=647168, f_ffree=619393, f_fsid={val=[0xeb350b93, 0xf2a50bc0]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOSUID|ST_NODEV|ST_NOATIME}) = 0
-4099  mmap(NULL, 892, PROT_READ, MAP_SHARED, 81, 0) = 0x744f6fa000
-4099  close(81)                         = 0
-4099  openat(AT_FDCWD, "/data/resource-cache/data@resource-cache@com.android.systemui-neutral-yrAU.frro@idmap", O_RDONLY|O_CLOEXEC|O_PATH) = 81
-4099  fstat(81, {st_mode=S_IFREG|0644, st_size=892, ...}) = 0
-4099  openat(AT_FDCWD, "/data/resource-cache/com.android.systemui-neutral-yrAU.frro", O_RDONLY|O_CLOEXEC) = 82
-4099  pread64(82, "FRRO", 4, 0)         = 4
-4099  openat(AT_FDCWD, "/data/resource-cache/com.android.systemui-neutral-yrAU.frro", O_RDONLY|O_CLOEXEC) = 83
-4099  pread64(83, "FRRO", 4, 0)         = 4
-4099  close(83)                         = 0
-4099  close(82)                         = 0
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\3539\320\20", iov_len=11}, {iov_base="\4", iov_len=1}, {iov_base="s.durak.rustore\0", iov_len=16}, {iov_base="AssetManager2(0xb4000073334271d8"..., iov_len=74}], 4) = 102
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f5e0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f570) = 0
-4099  openat(AT_FDCWD, "/proc/self/cmdline", O_RDONLY|O_CLOEXEC) = 82
-4099  fstat(82, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
-4099  read(82, "com.rstgames.durak.rustore\0\0\0\0\0\0"..., 1024) = 99
-4099  read(82, "", 1024)                = 0
-4099  close(82)                         = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f430) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f3c0) = 0
-4099  madvise(0x70c0022000, 4096, MADV_DONTNEED) = 0
-4099  madvise(0x70c0000000, 4096, MADV_DONTNEED) = 0
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f460) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f3f0) = 0
-4099  getuid()                          = 10489
-4099  faccessat(AT_FDCWD, "/data/user/0/com.rstgames.durak.rustore", F_OK) = 0
-4099  getuid()                          = 10489
-4099  faccessat(AT_FDCWD, "/data/user/0/com.rstgames.durak.rustore/cache", F_OK) = 0
-4099  getuid()                          = 10489
-4099  faccessat(AT_FDCWD, "/data/user_de/0/com.rstgames.durak.rustore", F_OK) = 0
-4099  getuid()                          = 10489
-4099  faccessat(AT_FDCWD, "/data/user_de/0/com.rstgames.durak.rustore/code_cache", F_OK) = 0
-4099  faccessat(AT_FDCWD, "/data/user_de/0/com.rstgames.durak.rustore", F_OK) = 0
-4099  getuid()                          = 10489
-4099  faccessat(AT_FDCWD, "/data/user_de/0/com.rstgames.durak.rustore/cache", F_OK) = 0
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f620) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f5b0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f3b0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f340) = 0
-4099  prctl(PR_GET_DUMPABLE)            = 0 (SUID_DUMP_DISABLE)
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-jM\\\332\22", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="Currently set values for:\0", iov_len=26}], 4) = 58
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\212\347\343\22", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="  angle_gl_driver_selection_pkgs"..., iov_len=134}], 4) = 166
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\17\374\27\23", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="  angle_gl_driver_selection_valu"..., iov_len=67}], 4) = 99
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\273\"\"\23", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="com.rstgames.durak.rustore is no"..., iov_len=68}], 4) = 100
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-jE\3616\23", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="ANGLE allowlist from config: \0", iov_len=30}], 4) = 62
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\21\267D\23", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="com.rstgames.durak.rustore is no"..., iov_len=91}], 4) = 123
-4099  openat(AT_FDCWD, "/dev/__properties__/u:object_r:graphics_config_prop:s0", O_RDONLY|O_NOFOLLOW|O_CLOEXEC) = 82
-4099  fstat(82, {st_mode=S_IFREG|0444, st_size=131072, ...}) = 0
-4099  mmap(NULL, 131072, PROT_READ, MAP_SHARED, 82, 0) = 0x74470f8000
-4099  close(82)                         = 0
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\327CS\23", iov_len=11}, {iov_base="\2", iov_len=1}, {iov_base="GraphicsEnvironment\0", iov_len=20}, {iov_base="Neither updatable production dri"..., iov_len=72}], 4) = 104
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f400) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f390) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f400) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f390) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f400) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f390) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f400) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f390) = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4ed10) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4eb30) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4eaa0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4ed40) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4ed30) = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f460) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f3f0) = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  faccessat(AT_FDCWD, "/apex/com.android.conscrypt/cacerts", F_OK) = 0
-4099  openat(AT_FDCWD, "/apex/com.android.conscrypt/cacerts", O_RDONLY|O_CLOEXEC|O_DIRECTORY) = 82
-4099  getdents64(82, 0xb400007223417470 /* 131 entries */, 4200) = 4184
-4099  getdents64(82, 0xb400007223417470 /* 20 entries */, 4200) = 632
-4099  getdents64(82, 0xb400007223417470 /* 0 entries */, 4200) = 0
-4099  close(82)                         = 0
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f2e0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f270) = 0
-4099  openat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/lib/arm64/libdexprotector.so", O_RDONLY) = -1 ENOENT (No such file or directory)
-4099  newfstatat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", {st_mode=S_IFREG|0644, st_size=69699947, ...}, 0) = 0
-4099  openat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", O_RDONLY|O_CLOEXEC) = 82
-4099  fcntl(82, F_GETFL)                = 0x20000 (flags O_RDONLY|O_LARGEFILE)
-4099  fstat(82, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  fstat(82, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  lseek(82, 69699819, SEEK_SET)     = 69699819
-4099  read(82, "\0\25\0\0\0\0\0\0\0\0\0\0\0\0\0/\245!\4META-INF/BNDL"..., 128) = 128
-4099  lseek(82, 69699905, SEEK_SET)     = 69699905
-4099  read(82, "META-INF/MANIFEST.MF", 20) = 20
-4099  fstat(82, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  mmap(NULL, 272747, PROT_READ, MAP_SHARED, 82, 0x4236000) = 0x7446e09000
-4099  lseek(82, 0, SEEK_SET)            = 0
-4099  read(82, "PK\3\4", 4)             = 4
-4099  newfstatat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", {st_mode=S_IFREG|0644, st_size=69699947, ...}, 0) = 0
-4099  prctl(PR_GET_DUMPABLE)            = 0 (SUID_DUMP_DISABLE)
-4099  mprotect(0x7456e71000, 393216, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x7456f3e000, 393216, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x7456d78000, 393216, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x7456d18000, 393216, PROT_READ|PROT_WRITE) = 0
-4099  mmap(NULL, 393216, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7444592000
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x7444592000, 393216, "linker_alloc") = 0
-4099  openat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", O_RDONLY|O_CLOEXEC) = 83
-4099  openat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", O_RDONLY|O_CLOEXEC) = 84
-4099  fstat(84, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  mmap(NULL, 69632, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x744f270000
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x744f270000, 69632, "bionic_alloc_lob") = 0
-4099  pread64(84, "\0\0\234\2\0\0\30\0\0\0\0\0\0\0\0\0\0\0\266\201X\307\327\3res/anim"..., 65557, 69634390) = 65557
-4099  gettid()                          = 4099
-4099  mmap(NULL, 272725, PROT_READ, MAP_SHARED, 84, 0x4236000) = 0x74447d5000
-4099  munmap(0x744f270000, 69632)       = 0
-4099  madvise(0x74447d5000, 274432, MADV_WILLNEED) = 0
-4099  mmap(NULL, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x744f42c000
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x744f42c000, 20480, "bionic_alloc_lob") = 0
-4099  pread64(84, "PK\3\4", 4, 0)       = 4
-4099  pread64(84, "PK\3\4\0\0\0\0\0\0!\10!\2\rA\200\2065\277\5\0005\277\5\0 \0R\30", 30, 58697584) = 30
-4099  pread64(84, "lib/arm64-v8a/libdexprotector.so", 32, 58697614) = 32
-4099  readlinkat(AT_FDCWD, "/proc/self/fd/83", "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_E"..., 4096) = 97
-4099  fstat(83, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  fstatfs(83, {f_type=EXT2_SUPER_MAGIC, f_bsize=4096, f_blocks=2481474, f_bfree=1101340, f_bavail=1064476, f_files=647168, f_ffree=619393, f_fsid={val=[0xeb350b93, 0xf2a50bc0]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOSUID|ST_NODEV|ST_NOATIME}) = 0
-4099  pread64(83, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 64, 58703872) = 64
-4099  mmap(NULL, 576, PROT_READ, MAP_PRIVATE, 83, 0x37fc000) = 0x744f6a7000
-4099  mmap(NULL, 2272, PROT_READ, MAP_PRIVATE, 83, 0x37ff000) = 0x744f6a6000
-4099  mmap(NULL, 3712, PROT_READ, MAP_PRIVATE, 83, 0x37fe000) = 0x744f6a5000
-4099  mmap(NULL, 1273, PROT_READ, MAP_PRIVATE, 83, 0x37fc000) = 0x744f652000
-4099  mmap(NULL, 782336, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x715a9fa000
-4099  munmap(0x715a9fa000, 40960)       = 0
-4099  munmap(0x715aa6c000, 315392)      = 0
-4099  mmap(0x715aa04000, 9916, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED, 83, 0x37fc000) = 0x715aa04000
-4099  mmap(0x715aa0a000, 1976, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 83, 0x37fe000) = 0x715aa0a000
-4099  mmap(0x715aa0e000, 4648, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 83, 0x37fe000) = 0x715aa0e000
-4099  mmap(0x715aa13000, 364333, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 83, 0x37ff000) = 0x715aa13000
-4099  mprotect(0x715aa0a000, 4096, PROT_READ) = 0
-4099  mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x744f5fd000
-4099  mprotect(0x73a379e000, 4096, PROT_READ) = 0
-4099  mprotect(0x744f5fd000, 4096, PROT_READ) = 0
-4099  mremap(0x744f5fd000, 4096, 4096, MREMAP_MAYMOVE|MREMAP_FIXED, 0x73a379e000) = 0x73a379e000
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x73a3414000, 2147483647, "cfi shadow") = 0
-4099  close(84)                         = 0
-4099  munmap(0x744f42c000, 20480)       = 0
-4099  munmap(0x74447d5000, 272725)      = 0
-4099  close(83)                         = 0
-4099  munmap(0x744f652000, 1273)        = 0
-4099  munmap(0x744f6a5000, 3712)        = 0
-4099  munmap(0x744f6a6000, 2272)        = 0
-4099  munmap(0x744f6a7000, 576)         = 0
-4099  prctl(PR_SET_DUMPABLE, SUID_DUMP_DISABLE) = 0
-4099  openat(AT_FDCWD, "/proc/self/stat", O_RDONLY) = 83
-4099  read(83, "4099 (s.durak.rustore) R 651 651"..., 4095) = 303
-4099  close(83)                         = 0
-4099  mmap(NULL, 606208, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x715a970000
-4099  mprotect(0x715a970000, 524288, PROT_READ|PROT_WRITE) = 0
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x715a970000, 524288, "13e0") = 0
-4099  mprotect(0x715a9f0000, 32768, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x715a9f8000, 32768, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x715a970000, 524288, PROT_READ|PROT_EXEC) = 0
-4099  mprotect(0x715a9f0000, 32768, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x715a9f8000, 32768, PROT_READ|PROT_WRITE) = 0
-4099  mprotect(0x715a9f0000, 32768, PROT_READ) = 0
-4099  mprotect(0x7456e71000, 393216, PROT_READ) = 0
-4099  mprotect(0x7456f3e000, 393216, PROT_READ) = 0
-4099  mprotect(0x7456d78000, 393216, PROT_READ) = 0
-4099  mprotect(0x7456d18000, 393216, PROT_READ) = 0
-4099  munmap(0x7444592000, 393216)      = 0
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\225)\225\32", iov_len=11}, {iov_base="\3", iov_len=1}, {iov_base="nativeloader\0", iov_len=13}, {iov_base="Load /data/app/~~2ZyTmJ6Fs-6G1Z2"..., iov_len=277}], 4) = 302
-4099  prctl(PR_GET_DUMPABLE)            = 0 (SUID_DUMP_DISABLE)
-4099  setrlimit(RLIMIT_CORE, {rlim_cur=0, rlim_max=RLIM64_INFINITY}) = 0
-4099  getpid()                          = 4099
-4099  prctl(PR_SET_PTRACER, 4099)       = -1 EINVAL (Invalid argument)
-4099  openat(AT_FDCWD, "/proc/self/stat", O_RDONLY) = 83
-4099  read(83, "4099 (s.durak.rustore) R 651 651"..., 4095) = 304
-4099  close(83)                         = 0
-4099  readlinkat(AT_FDCWD, "/proc/self/exe", "/system/bin/app_process64", 4095) = 25
-4099  openat(AT_FDCWD, "/system/bin/app_process64", O_RDONLY) = 83
-4099  read(83, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\0 \0\0\0\0\0\0"..., 64) = 64
-4099  lseek(83, 64, SEEK_SET)           = 64
-4099  read(83, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\3\0\0\0\4\0\0\0\340\2\0\0\0\0\0\0\340\2\0\0\0\0\0\0\340\2\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\1\0\0\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\1\0\0\0\5\0\0\0\0 \0\0\0\0\0\0\0 \0\0\0\0\0\0\0 \0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\1\0\0\0\6\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\1\0\0\0\6\0\0\0\0P\0\0\0\0\0\0\0P\0\0\0\0\0\0\0P\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\7\0\0\0\4\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\2\0\0\0\6\0\0\0\220@\0\0\0\0\0\0\220@\0\0\0\0\0\0\220@\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "R\345td\4\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "P\345td\4\0\0\0h\26\0\0\0\0\0\0h\26\0\0\0\0\0\0h\26\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "Q\345td\6\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 56) = 56
-4099  read(83, "\4\0\0\0\4\0\0\0\370\2\0\0\0\0\0\0\370\2\0\0\0\0\0\0\370\2\0\0\0\0\0\0"..., 56) = 56
-4099  openat(AT_FDCWD, "/proc/self/maps", O_RDONLY) = 84
-4099  read(84, "02000000-22000000 rw-p 00000000 "..., 16384) = 4005
-4099  read(84, "71738000-71748000 r--p 00000000 "..., 16384) = 3993
-4099  read(84, "72105000-72108000 ---p 00000000 "..., 16384) = 4072
-4099  close(84)                         = 0
-4099  close(83)                         = 0
-4099  prctl(PR_SET_DUMPABLE, SUID_DUMP_USER) = 0
-4099  openat(AT_FDCWD, "/proc/self/pagemap", O_RDONLY) = 83
-4099  prctl(PR_SET_DUMPABLE, SUID_DUMP_DISABLE) = 0
-4099  rt_sigaction(SIGCONT, {sa_handler=0x715a9d3f00, sa_mask=[], sa_flags=SA_RESTART}, NULL, 8) = 0
-4099  getpid()                          = 4099
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\2\3\20sU-jXqi\34", iov_len=11}, {iov_base=">u\0\0", iov_len=4}, {iov_base="\2", iov_len=1}, {iov_base="Y\0\0\0[0,4099,10489,com.rstgames.d"..., iov_len=93}], 4) = 109
-4099  prctl(PR_GET_NAME, "s.durak.rustore") = 0
-4099  getpid()                          = 4099
-4099  prctl(PR_SET_NAME, "RxCachedThreadS"...) = 0
-4099  openat(AT_FDCWD, "/proc/self/maps", O_RDONLY) = 84
-4099  read(84, "02000000-22000000 rw-p 00000000 "..., 16384) = 4005
-4099  read(84, "71738000-71748000 r--p 00000000 "..., 16384) = 3993
-4099  read(84, "72105000-72108000 ---p 00000000 "..., 16384) = 4072
-4099  read(84, "61702ae000-61702af000 rw-p 00005"..., 16384) = 4012
-4099  read(84, "714ab7b000-714ab7c000 rw-p 00074"..., 16384) = 4057
-4099  read(84, "714f7c0000-714f7d1000 r--p 00000"..., 16384) = 4038
-4099  read(84, "7150817000-7150818000 rw-p 00000"..., 16384) = 4059
-4099  read(84, "7150fb5000-7150fb6000 r--p 0001f"..., 16384) = 4055
-4099  read(84, "71512b4000-71512b6000 r--p 00000"..., 16384) = 4056
-4099  read(84, "71514db000-71514dd000 rw-p 00000"..., 16384) = 4008
-4099  read(84, "7153cde000-7153cdf000 r--p 00017"..., 16384) = 3991
-4099  read(84, "7155145000-715514d000 r--p 000f6"..., 16384) = 4095
-4099  read(84, "715b1e9000-715b2e4000 rw-p 00000"..., 16384) = 3984
-4099  read(84, "7163e6d000-7163e6e000 r--p 0004a"..., 16384) = 4070
-4099  read(84, "71672f2000-71672f4000 r-xp 00002"..., 16384) = 4059
-4099  read(84, "716762e000-716762f000 r--p 00003"..., 16384) = 4082
-4099  read(84, "71679f2000-71679f3000 rw-p 00131"..., 16384) = 3999
-4099  read(84, "7168b86000-7168b8e000 r--p 000f6"..., 16384) = 4017
-4099  read(84, "718d7e2000-718df20000 r--p 01935"..., 16384) = 4056
-4099  read(84, "7233464000-7243419000 ---p 00000"..., 16384) = 4022
-4099  read(84, "738341e000-738345e000 rw-p 00000"..., 16384) = 4056
-4099  read(84, "742379c000-74237a3000 r--p 000d6"..., 16384) = 4060
-4099  read(84, "7426942000-7426a07000 r--p 00000"..., 16384) = 4086
-4099  read(84, "742ad2b000-742ad2c000 rw-p 00016"..., 16384) = 4077
-4099  read(84, "742b01c000-742b01d000 r--p 00000"..., 16384) = 4020
-4099  read(84, "742eb3e000-742eb9a000 r-xp 0003c"..., 16384) = 4023
-4099  read(84, "742f7bf000-742f7c2000 r--p 00136"..., 16384) = 4033
-4099  read(84, "7432ba4000-7432ba9000 r--p 00000"..., 16384) = 4070
-4099  read(84, "74369e5000-74369ec000 r--p 00056"..., 16384) = 4094
-4099  read(84, "743c961000-743c962000 rw-p 00009"..., 16384) = 3990
-4099  read(84, "743ccd4000-743ccd8000 r-xp 00003"..., 16384) = 4082
-4099  read(84, "743ed6f000-743ed70000 r--p 00012"..., 16384) = 4069
-4099  read(84, "744047e000-744047f000 rw-p 0003a"..., 16384) = 4062
-4099  read(84, "7442cb7000-7442cb9000 r--p 0000d"..., 16384) = 4009
-4099  read(84, "7444470000-7444471000 r--p 00002"..., 16384) = 4011
-4099  read(84, "744470b000-744470f000 r-xp 00005"..., 16384) = 4021
-4099  read(84, "74449c5000-74449db000 r--p 00000"..., 16384) = 4015
-4099  read(84, "7446e09000-7446e4c000 r--s 04236"..., 16384) = 4093
-4099  read(84, "744706b000-744706c000 r--p 00008"..., 16384) = 4077
-4099  read(84, "7448a6d000-7448a6e000 rw-p 00000"..., 16384) = 4009
-4099  read(84, "744a932000-744a933000 rw-p 0001f"..., 16384) = 4081
-4099  read(84, "744e3fc000-744e3fd000 rw-p 0003b"..., 16384) = 4006
-4099  read(84, "744e62b000-744e64b000 r--s 00000"..., 16384) = 4031
-4099  read(84, "744ef88000-744efa8000 r--s 00000"..., 16384) = 4060
-4099  read(84, "744f1ec000-744f1ed000 rw-p 00000"..., 16384) = 3994
-4099  read(84, "744f3a4000-744f3c4000 rw-p 00000"..., 16384) = 4079
-4099  read(84, "744f622000-744f64f000 r-xp 00011"..., 16384) = 4052
-4099  read(84, "7451003000-7451004000 r--s 00000"..., 16384) = 4009
-4099  read(84, "745263b000-745265b000 r--s 00000"..., 16384) = 4030
-4099  read(84, "74542fb000-74542fc000 r-xp 00001"..., 16384) = 4000
-4099  read(84, "74545c4000-74545d8000 r--p 00000"..., 16384) = 4070
-4099  read(84, "74560cd000-74560ce000 r--s 00000"..., 16384) = 4045
-4099  read(84, "7456101000-7456102000 r--s 00000"..., 16384) = 4038
-4099  read(84, "74561cf000-74561f5000 r-xp 0001a"..., 16384) = 4080
-4099  read(84, "7456240000-7456241000 rw-p 00000"..., 16384) = 4071
-4099  read(84, "7456379000-745637a000 r--s 00001"..., 16384) = 4064
-4099  read(84, "745656e000-7456586000 r--p 00000"..., 16384) = 4082
-4099  read(84, "7456812000-7456813000 r--p 0000e"..., 16384) = 4083
-4099  read(84, "745699f000-74569a0000 r--p 00004"..., 16384) = 4013
-4099  read(84, "7456b6a000-7456b72000 r--p 00000"..., 16384) = 4049
-4099  read(84, "7456df3000-7456df4000 r--p 00010"..., 16384) = 3867
-4099  read(84, "", 16384)               = 0
-4099  close(84)                         = 0
-4099  mmap(NULL, 1040384, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0) = 0x714aa09000
-4099  mprotect(0x714aa0a000, 1032192, PROT_READ|PROT_WRITE) = 0
-4099  rt_sigprocmask(SIG_BLOCK, ~[], [QUIT USR1 PIPE RTMIN], 8) = 0
-4099  rt_sigprocmask(SIG_SETMASK, [QUIT USR1 PIPE RTMIN], NULL, 8) = 0
-4099  rt_sigprocmask(SIG_SETMASK, ~[], [QUIT USR1 PIPE RTMIN], 8) = 0
-4099  clone(child_stack=0x714ab024f0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID <unfinished ...>
-5770  futex(0x714ab0259c, FUTEX_WAIT_BITSET_PRIVATE, 2, NULL, FUTEX_BITSET_MATCH_ANY <unfinished ...>
-4099  <... clone resumed>, parent_tid=[5770], tls=0x714ab02880, child_tidptr=0x714ab02510) = 5770
-4099  rt_sigprocmask(SIG_SETMASK, [QUIT USR1 PIPE RTMIN], NULL, 8) = 0
-4099  futex(0x714ab0259c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
-5770  <... futex resumed>)              = 0
-4099  <... futex resumed>)              = 1
-5770  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x714aa0a000, 1032192, "stack_and_tls:5770") = 0
-4099  mmap(NULL, 1040384, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0 <unfinished ...>
-5770  mmap(NULL, 36864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x744f278000
-4099  <... mmap resumed>)               = 0x7100dea000
-5770  mprotect(0x744f278000, 4096, PROT_NONE) = 0
-5770  sigaltstack({ss_sp=0x744f279000, ss_flags=0, ss_size=32768} <unfinished ...>
-4099  mprotect(0x7100deb000, 1032192, PROT_READ|PROT_WRITE <unfinished ...>
-5770  <... sigaltstack resumed>, NULL)  = 0
-5770  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x744f279000, 32768, "thread signal stack") = 0
-4099  <... mprotect resumed>)           = 0
-5770  mmap(NULL, 16777216, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x707e000000
-4099  rt_sigprocmask(SIG_BLOCK, ~[] <unfinished ...>
-5770  mprotect(0x707ea08000, 16384, PROT_READ|PROT_WRITE <unfinished ...>
-4099  <... rt_sigprocmask resumed>, [QUIT USR1 PIPE RTMIN], 8) = 0
-5770  <... mprotect resumed>)           = 0
-5770  rt_sigprocmask(SIG_SETMASK, [QUIT USR1 PIPE RTMIN], NULL, 8) = 0
-5770  getpid( <unfinished ...>
-4099  rt_sigprocmask(SIG_SETMASK, [QUIT USR1 PIPE RTMIN] <unfinished ...>
-5770  <... getpid resumed>)             = 4099
-5770  nanosleep({tv_sec=2, tv_nsec=0} <unfinished ...>
-4099  <... rt_sigprocmask resumed>, NULL, 8) = 0
-4099  rt_sigprocmask(SIG_SETMASK, ~[], [QUIT USR1 PIPE RTMIN], 8) = 0
-4099  clone(child_stack=0x7100ee34f0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID <unfinished ...>
-5771  futex(0x7100ee359c, FUTEX_WAIT_BITSET_PRIVATE, 2, NULL, FUTEX_BITSET_MATCH_ANY <unfinished ...>
-4099  <... clone resumed>, parent_tid=[5771], tls=0x7100ee3880, child_tidptr=0x7100ee3510) = 5771
-4099  rt_sigprocmask(SIG_SETMASK, [QUIT USR1 PIPE RTMIN], NULL, 8) = 0
-4099  futex(0x7100ee359c, FUTEX_WAKE_PRIVATE, 1) = 1
-5771  <... futex resumed>)              = 0
-5771  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x7100deb000, 1032192, "stack_and_tls:5771") = 0
-5771  mmap(NULL, 36864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x744f26f000
-5771  mprotect(0x744f26f000, 4096, PROT_NONE) = 0
-5771  sigaltstack({ss_sp=0x744f270000, ss_flags=0, ss_size=32768}, NULL) = 0
-5771  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x744f270000, 32768, "thread signal stack") = 0
-5771  mmap(NULL, 16777216, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x707d000000
-5771  mprotect(0x707da10000, 16384, PROT_READ|PROT_WRITE) = 0
-5771  rt_sigprocmask(SIG_SETMASK, [QUIT USR1 PIPE RTMIN], NULL, 8) = 0
-5771  getpid()                          = 4099
-5771  nanosleep({tv_sec=2, tv_nsec=0} <unfinished ...>
-4099  openat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", O_RDONLY) = 84
-4099  fstat(84, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  mmap(NULL, 69699947, PROT_READ, MAP_PRIVATE, 84, 0) = 0x7078d87000
-4099  fstat(84, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  readlinkat(AT_FDCWD, "/proc/self/fd/84", "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_E"..., 4095) = 97
-4099  newfstatat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", {st_mode=S_IFREG|0644, st_size=69699947, ...}, 0) = 0
-4099  rt_sigprocmask(0x56e00a88 /* SIG_??? */, NULL, [QUIT USR1 PIPE RTMIN], 8) = 0
-4099  pread64(76, "PK\3\4\0\0\0\0\0\0!\10!\2\323|2R\342\n9\0\342\n9\0\21\0\0\0", 30, 23777) = 30
-4099  pread64(76, "assets/assets.dat", 17, 23807) = 17
-4099  mmap(NULL, 3741682, PROT_READ, MAP_SHARED, 76, 0x5000) = 0x7100a58000
-4099  openat(AT_FDCWD, "/data/app/~~2ZyTmJ6Fs-6G1Z2GGb_EMA==/com.rstgames.durak.rustore-k_N7wkfRJPG6ITEDQKXY-A==/base.apk", O_RDONLY) = 85
-4099  fstat(85, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  fstat(84, {st_mode=S_IFREG|0644, st_size=69699947, ...}) = 0
-4099  mmap(NULL, 126976, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0) = 0x7447044000
-4099  mmap(0x7447045000, 118784, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7447045000
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x7447045000, 118784, "scudo:secondary") = 0
-4099  mmap(NULL, 126976, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0) = 0x7447005000
-4099  mmap(0x7447006000, 118784, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7447006000
-4099  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, 0x7447006000, 118784, "scudo:secondary") = 0
-4099  openat(AT_FDCWD, "/proc/self/maps", O_RDONLY) = 86
-4099  read(86, "02000000-22000000 rw-p 00000000 "..., 16384) = 4005
-4099  read(86, "71738000-71748000 r--p 00000000 "..., 16384) = 3993
-4099  read(86, "72105000-72108000 ---p 00000000 "..., 16384) = 4072
-4099  read(86, "61702ae000-61702af000 rw-p 00005"..., 16384) = 4066
-4099  read(86, "71485ac000-71485ad000 rw-p 0019a"..., 16384) = 4045
-4099  read(86, "714f748000-714f752000 r-xp 00006"..., 16384) = 4051
-4099  read(86, "7150785000-7150786000 r--p 00002"..., 16384) = 4007
-4099  read(86, "7150f16000-7150f18000 r--p 00015"..., 16384) = 4044
-4099  read(86, "7151227000-7151230000 r--p 00000"..., 16384) = 4075
-4099  read(86, "715141a000-715141b000 rw-p 00000"..., 16384) = 4024
-4099  read(86, "7152bf5000-7152bf6000 r--p 0000a"..., 16384) = 4050
-4099  read(86, "7154347000-71543cc000 r-xp 000fc"..., 16384) = 3960
-4099  close(86)                         = 0
-4099  openat(AT_FDCWD, "/dev/binder", O_RDWR|O_CLOEXEC) = 86
-4099  ioctl(86, BINDER_VERSION, 0x7ff9f4f4e8) = 0
-4099  mmap(NULL, 1015808, PROT_READ, MAP_PRIVATE|MAP_NORESERVE, 86, 0) = 0x7100960000
-4099  ioctl(86, BINDER_WRITE_READ, 0x7ff9f4f420) = 0
-4099  ioctl(86, BINDER_WRITE_READ, 0x7ff9f4f420) = 0
-4099  ioctl(86, BINDER_WRITE_READ, 0x7ff9f4f3d0) = 0
-4099  ioctl(86, BINDER_WRITE_READ, 0x7ff9f4f400) = 0
-4099  ioctl(86, BINDER_WRITE_READ, 0x7ff9f4f400) = 0
-4099  munmap(0x7100960000, 1015808)     = 0
-4099  close(86)                         = 0
-4099  getuid()                          = 10489
-4099  openat(AT_FDCWD, "/proc/self/status", O_RDONLY) = 86
-4099  read(86, "Name:\tRxCachedThreadS\nUmask:\t007"..., 4096) = 991
-4099  read(86, "", 4096)                = 0
-4099  close(86)                         = 0
-4099  munmap(0x7078d87000, 69699947)    = 0
-4099  close(84)                         = 0
-4099  prctl(PR_SET_NAME, "s.durak.rustore"...) = 0
-4099  madvise(0x70c0022000, 4096, MADV_DONTNEED) = 0
-4099  madvise(0x70c0043000, 4096, MADV_DONTNEED) = 0
-4099  madvise(0x70c0001000, 4096, MADV_DONTNEED) = 0
-4099  uname({sysname="Linux", nodename="localhost", ...}) = 0
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\336&\5 ", iov_len=11}, {iov_base="\4", iov_len=1}, {iov_base="Fingerprint\0", iov_len=12}, {iov_base="[20260218-202603061535 aarch64 3"..., iov_len=164}], 4) = 188
-4099  openat(AT_FDCWD, "/dev/urandom", O_RDONLY) = 84
-4099  read(84, "j\374W\4\213\321\30^W\253!D\350\307C\4\256\370.\357mI\213&\356\352\213\342\2562\214A"..., 128) = 128
-4099  close(84)                         = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4e3a0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4e1c0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4e130) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4e3d0) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4e3c0) = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4ea10) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4e9a0) = 0
-4099  madvise(0x70c0000000, 4096, MADV_DONTNEED) = 0
-4099  getuid()                          = 10489
-4099  getuid()                          = 10489
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f690) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f620) = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f690 <unfinished ...>
-5754  <... rt_sigtimedwait resumed>)    = -1 EINTR (Interrupted system call)
-5754  rt_sigtimedwait([QUIT USR1 RTMIN], NULL, NULL, 8 <unfinished ...>
-5761  <... ioctl resumed>)              = 0
-5754  <... rt_sigtimedwait resumed>)    = -1 EINTR (Interrupted system call)
-5754  rt_sigtimedwait([QUIT USR1 RTMIN], NULL, NULL, 8 <unfinished ...>
-5761  --- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=NULL} ---
-4099  <... ioctl resumed>)              = 0
-5761  rt_sigprocmask(SIG_SETMASK, ~[ILL ABRT BUS FPE SEGV RT_1 RT_2 RT_3 RT_4 RT_5 RT_6 RT_7 RT_8 RT_9] <unfinished ...>
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f620 <unfinished ...>
-5761  <... rt_sigprocmask resumed>, ~[KILL STOP], 8) = 0
-4099  <... ioctl resumed>)              = 0
-5761  rt_sigreturn({mask=[QUIT USR1 PIPE TERM RTMIN]} <unfinished ...>
-4099  getuid( <unfinished ...>
-5761  <... rt_sigreturn resumed>)       = 1892980368
-4099  <... getuid resumed>)             = 10489
-5761  sigaltstack(NULL <unfinished ...>
-4099  getuid( <unfinished ...>
-5761  <... sigaltstack resumed>, {ss_sp=0x744f37e000, ss_flags=0, ss_size=32768}) = 0
-4099  <... getuid resumed>)             = 10489
-5761  madvise(0x744f37e000, 32768, MADV_FREE <unfinished ...>
-4099  epoll_pwait(74 <unfinished ...>
-5761  <... madvise resumed>)            = 0
-4099  <... epoll_pwait resumed>, [], 16, 0, NULL, 8) = 0
-5761  ioctl(72, BINDER_WRITE_READ, 0x715b3de180 <unfinished ...>
-4099  getuid( <unfinished ...>
-5761  <... ioctl resumed>)              = 0
-4099  <... getuid resumed>)             = 10489
-5761  futex(0xb400007283428cc0, FUTEX_REQUEUE_PRIVATE, 0, 1, 0xb400007283428c9c <unfinished ...>
-4099  writev(27, [{iov_base="\0\3\20sU-j\257\37\32$", iov_len=11}, {iov_base="\3", iov_len=1}, {iov_base="AndroidRuntime\0", iov_len=15}, {iov_base="Shutting down VM\n\0", iov_len=18}], 4 <unfinished ...>
-5761  <... futex resumed>)              = 1
-4099  <... writev resumed>)             = 45
-5761  futex(0xb400007283428c9c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
-4099  getuid( <unfinished ...>
-5761  <... futex resumed>)              = 1
-4099  <... getuid resumed>)             = 10489
-5761  ioctl(72, BINDER_WRITE_READ, 0x715b3de180 <unfinished ...>
-5757  <... restart_syscall resumed>)    = 0
-4099  writev(27, [{iov_base="\4\3\20sU-j\250\270/$", iov_len=11}, {iov_base="\6", iov_len=1}, {iov_base="AndroidRuntime\0", iov_len=15}, {iov_base="FATAL EXCEPTION: main\nProcess: c"..., iov_len=1260}], 4 <unfinished ...>
-5757  futex(0xb400007283428c9c, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
-4099  <... writev resumed>)             = 1287
-5757  <... futex resumed>)              = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f9b0 <unfinished ...>
-5757  futex(0xb400007283428cc0, FUTEX_WAIT_PRIVATE, 60, {tv_sec=1, tv_nsec=520198906} <unfinished ...>
-4099  <... ioctl resumed>)              = 0
-4099  ioctl(72, BINDER_WRITE_READ, 0x7ff9f4f940) = 0
-4099  getuid()                          = 10489
-4099  writev(27, [{iov_base="\0\3\20sU-j\216%\272%", iov_len=11}, {iov_base="\4", iov_len=1}, {iov_base="Process\0", iov_len=8}, {iov_base="Sending signal. PID: 4099 SIG: 9"..., iov_len=33}], 4) = 53
-4099  kill(4099, SIGKILL <unfinished ...>
-5771  <... nanosleep resumed> <unfinished ...>) = ?
-5767  <... futex resumed>)              = ?
-5763  <... ioctl resumed>)              = ?
-5762  <... ioctl resumed>)              = ?
-5761  <... ioctl resumed>)              = ?
-5754  <... rt_sigtimedwait resumed> <unfinished ...>) = ?
-4099  <... kill resumed>)               = ?
-5771  +++ killed by SIGKILL +++
-5770  <... nanosleep resumed> <unfinished ...>) = ?
-5760  <... futex resumed>)              = ?
-5759  <... futex resumed>)              = ?
-5758  <... futex resumed>)              = ?
-5767  +++ killed by SIGKILL +++
-5757  <... futex resumed>)              = ?
-5756  <... futex resumed>)              = ?
-5755  <... read resumed> <unfinished ...>) = ?
-5754  +++ killed by SIGKILL +++
-5770  +++ killed by SIGKILL +++
-5763  +++ killed by SIGKILL +++
-5762  +++ killed by SIGKILL +++
-5761  +++ killed by SIGKILL +++
-5758  +++ killed by SIGKILL +++
-5755  +++ killed by SIGKILL +++
-5760  +++ killed by SIGKILL +++
-5759  +++ killed by SIGKILL +++
-5756  +++ killed by SIGKILL +++
-5757  +++ killed by SIGKILL +++
-4099  +++ killed by SIGKILL +++
+package p193z4;
+
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.google.android.play.core.common.Application;
+import com.google.android.play.core.common.LibApplication;
+import com.ironsource.InterfaceC2747l1;
+import com.ironsource.adqualitysdk.sdk.C2178R;
+import com.ironsource.mediationsdk.logger.IronSourceError;
+import com.ironsource.mediationsdk.utils.IronSourceConstants;
+import com.rstgames.C3270a;
+import java.lang.reflect.Field;
+import p180x4.InterfaceC7382c;
+
+/* JADX INFO: renamed from: z4.r */
+/* JADX INFO: loaded from: C:\Users\Niki\Downloads\vx\dex2.dex */
+public class C8421r implements Screen {
+
+    /* JADX INFO: renamed from: b */
+    C3270a f37462b;
+
+    /* JADX INFO: renamed from: c */
+    Image f37463c;
+
+    /* JADX INFO: renamed from: d */
+    Image f37464d;
+
+    /* JADX INFO: renamed from: e */
+    TextureRegion f37465e;
+
+    /* JADX INFO: renamed from: f */
+    TextureRegion f37466f;
+
+    /* JADX INFO: renamed from: g */
+    boolean f37467g;
+
+    /* JADX INFO: renamed from: z4.r$a */
+    class a extends Stage {
+        a(Viewport viewport) {
+            super(viewport);
+        }
+
+        public boolean keyDown(int i) {
+            if (i == 4 || i == 111) {
+                LibApplication.i(5646, LibApplication.i(IronSourceError.ERROR_BN_RELOAD_SKIP_INVISIBLE));
+            }
+            return LibApplication.i(6147, this, i);
+        }
+    }
+
+    /* JADX INFO: renamed from: z4.r$b */
+    class b implements InterfaceC7382c {
+        b() {
+        }
+
+        @Override // p180x4.InterfaceC7382c
+        /* JADX INFO: renamed from: a */
+        public void mo22339a() {
+            LibApplication.i(292, LibApplication.i(426, LibApplication.i(6, LibApplication.i(2062, this))), LibApplication.i(98, LibApplication.i(241, LibApplication.i(6, LibApplication.i(2062, this))), Application.s("픙")), false);
+        }
+
+        @Override // p180x4.InterfaceC7382c
+        public void onConnected() {
+        }
+
+        @Override // p180x4.InterfaceC7382c
+        public void onDisconnected() {
+        }
+    }
+
+    public C8421r(C3270a c3270a) {
+        Object objI = LibApplication.i(200);
+        LibApplication.i(2737, objI);
+        LibApplication.i(12998, this, objI);
+        Object objI2 = LibApplication.i(200);
+        LibApplication.i(2737, objI2);
+        LibApplication.i(8663, this, objI2);
+        LibApplication.i(4401, this, false);
+        LibApplication.i(11403, this, c3270a);
+    }
+
+    /* JADX INFO: renamed from: a */
+    public String m26837a() {
+        return Application.s("픚");
+    }
+
+    public void dispose() {
+        Object objI = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI2 = LibApplication.i(74);
+        LibApplication.i(78, objI2);
+        LibApplication.i(885, objI2, LibApplication.i(1177, this));
+        LibApplication.i(28, objI2, Application.s("픛"));
+        LibApplication.i(857, objI, LibApplication.i(75, objI2));
+    }
+
+    public void hide() {
+        Object objI = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI2 = LibApplication.i(74);
+        LibApplication.i(78, objI2);
+        LibApplication.i(885, objI2, LibApplication.i(1177, this));
+        LibApplication.i(28, objI2, Application.s("픜"));
+        LibApplication.i(857, objI, LibApplication.i(75, objI2));
+        LibApplication.i(4557, this, (Object) null);
+        LibApplication.i(8572, this, (Object) null);
+        Object objI3 = LibApplication.i(943, LibApplication.i(6, this));
+        Object objI4 = LibApplication.i(74);
+        LibApplication.i(78, objI4);
+        LibApplication.i(28, objI4, LibApplication.i(1758, LibApplication.i(32, LibApplication.i(6, this))));
+        String strS = Application.s("픝");
+        LibApplication.i(28, objI4, strS);
+        if (LibApplication.i(10578, objI3, LibApplication.i(75, objI4))) {
+            Object objI5 = LibApplication.i(943, LibApplication.i(6, this));
+            Object objI6 = LibApplication.i(74);
+            LibApplication.i(78, objI6);
+            LibApplication.i(28, objI6, LibApplication.i(1758, LibApplication.i(32, LibApplication.i(6, this))));
+            LibApplication.i(28, objI6, strS);
+            LibApplication.i(4567, objI5, LibApplication.i(75, objI6));
+        }
+        LibApplication.i(12998, this, (Object) null);
+        LibApplication.i(8663, this, (Object) null);
+        LibApplication.i(9543, LibApplication.i(426, LibApplication.i(6, this)), false);
+        LibApplication.i(10128, LibApplication.i(79, LibApplication.i(6, this)));
+    }
+
+    public void pause() {
+        Object objI = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI2 = LibApplication.i(74);
+        LibApplication.i(78, objI2);
+        LibApplication.i(885, objI2, LibApplication.i(1177, this));
+        LibApplication.i(28, objI2, Application.s("픞"));
+        LibApplication.i(857, objI, LibApplication.i(75, objI2));
+    }
+
+    public void render(float f2) {
+        LibApplication.i(6831, LibApplication.i(2512), 1.0f, 1.0f, 1.0f, 1.0f);
+        LibApplication.i(11679, LibApplication.i(2512), 16384);
+        LibApplication.i(10772, LibApplication.i(79, LibApplication.i(6, this)), LibApplication.i(7823, LibApplication.i(1429)));
+        LibApplication.i(8852, LibApplication.i(79, LibApplication.i(6, this)));
+        if (!LibApplication.i(6605, LibApplication.i(943, LibApplication.i(6, this))) || LibApplication.i(10726, this)) {
+            return;
+        }
+        Object objI = LibApplication.i(6, this);
+        Object objI2 = LibApplication.i(4600);
+        LibApplication.i(6444, objI2);
+        LibApplication.i(12613, objI, objI2);
+        LibApplication.i(4182, LibApplication.i(1290, LibApplication.i(6, this)), LibApplication.i(943, LibApplication.i(6, this)));
+        LibApplication.i(3044, LibApplication.i(32, LibApplication.i(6, this)), (TextureAtlas) LibApplication.i(161, LibApplication.i(943, LibApplication.i(6, this)), Application.s("픟"), TextureAtlas.class), LibApplication.i(3681));
+        LibApplication.i(3044, LibApplication.i(32, LibApplication.i(6, this)), (TextureAtlas) LibApplication.i(161, LibApplication.i(943, LibApplication.i(6, this)), Application.s("픠"), TextureAtlas.class), LibApplication.i(4500));
+        Object objI3 = LibApplication.i(32, LibApplication.i(6, this));
+        Object objI4 = LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this)));
+        String strS = Application.s("픡");
+        String strS2 = Application.s("픢");
+        LibApplication.i(7432, objI3, LibApplication.i(107, LibApplication.i(1651, objI4, strS, strS2), Application.s("픣")));
+        LibApplication.i(5168, LibApplication.i(147, LibApplication.i(6, this)), LibApplication.i(1651, LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this))), strS, strS2));
+        Object objI5 = LibApplication.i(6, this);
+        Object objI6 = LibApplication.i(12767);
+        LibApplication.i(11857, objI6);
+        LibApplication.i(12579, objI5, objI6);
+        Object objI7 = LibApplication.i(32, LibApplication.i(6, this));
+        Object objI8 = LibApplication.i(200);
+        LibApplication.i(267, objI8, LibApplication.i(-7, LibApplication.i(2453, LibApplication.i(6, this)), Application.s("픤")));
+        LibApplication.i(8133, objI7, objI8);
+        LibApplication.i(266, LibApplication.i(912, LibApplication.i(32, LibApplication.i(6, this))), LibApplication.i(112, LibApplication.i(32, LibApplication.i(6, this))) * 1.1f, LibApplication.i(490, LibApplication.i(32, LibApplication.i(6, this))) * 1.1f);
+        Object objI9 = LibApplication.i(32, LibApplication.i(6, this));
+        Object objI10 = LibApplication.i(200);
+        LibApplication.i(267, objI10, LibApplication.i(-7, LibApplication.i(2453, LibApplication.i(6, this)), Application.s("픥")));
+        LibApplication.i(5228, objI9, objI10);
+        LibApplication.i(266, LibApplication.i(834, LibApplication.i(32, LibApplication.i(6, this))), LibApplication.i(112, LibApplication.i(32, LibApplication.i(6, this))) * 1.1f, LibApplication.i(490, LibApplication.i(32, LibApplication.i(6, this))) * 1.1f);
+        if (LibApplication.i(191, LibApplication.i(32, LibApplication.i(6, this))) > LibApplication.i(243, LibApplication.i(32, LibApplication.i(6, this)))) {
+            LibApplication.i(1246, LibApplication.i(912, LibApplication.i(32, LibApplication.i(6, this))), -90.0f);
+            LibApplication.i(1246, LibApplication.i(834, LibApplication.i(32, LibApplication.i(6, this))), -90.0f);
+            LibApplication.i(1341, LibApplication.i(912, LibApplication.i(32, LibApplication.i(6, this))), LibApplication.i(85, LibApplication.i(912, LibApplication.i(32, LibApplication.i(6, this)))));
+            LibApplication.i(1341, LibApplication.i(834, LibApplication.i(32, LibApplication.i(6, this))), LibApplication.i(85, LibApplication.i(834, LibApplication.i(32, LibApplication.i(6, this)))));
+        }
+        Object objI11 = LibApplication.i(32, LibApplication.i(6, this));
+        Object objI12 = LibApplication.i(-8);
+        Object objI13 = LibApplication.i(1700);
+        Object objI14 = LibApplication.i(978);
+        LibApplication.i(2834, objI14, Application.s("픦"));
+        LibApplication.i(1979, objI13, objI14);
+        LibApplication.i(-6, objI12, objI13);
+        LibApplication.i(7947, objI11, objI12);
+        Object objI15 = LibApplication.i(6, this);
+        Object objI16 = LibApplication.i(9296);
+        LibApplication.i(5391, objI16);
+        LibApplication.i(3678, objI15, objI16);
+        Object objI17 = LibApplication.i(6, this);
+        Object objI18 = LibApplication.i(4460);
+        LibApplication.i(8870, objI18);
+        LibApplication.i(6808, objI17, objI18);
+        Object objI19 = LibApplication.i(6, this);
+        Object objI20 = LibApplication.i(5573);
+        LibApplication.i(8082, objI20);
+        LibApplication.i(4341, objI19, objI20);
+        Object objI21 = LibApplication.i(6, this);
+        Object objI22 = LibApplication.i(9179);
+        LibApplication.i(9108, objI22);
+        LibApplication.i(5562, objI21, objI22);
+        Object objI23 = LibApplication.i(6, this);
+        Object objI24 = LibApplication.i(5712);
+        LibApplication.i(7777, objI24);
+        LibApplication.i(12065, objI23, objI24);
+        Object objI25 = LibApplication.i(6, this);
+        Object objI26 = LibApplication.i(11331);
+        LibApplication.i(11553, objI26);
+        LibApplication.i(6324, objI25, objI26);
+        Object objI27 = LibApplication.i(6, this);
+        Object objI28 = LibApplication.i(7600);
+        LibApplication.i(8578, objI28);
+        LibApplication.i(5248, objI27, objI28);
+        Object objI29 = LibApplication.i(6, this);
+        Object objI30 = LibApplication.i(9526);
+        LibApplication.i(3690, objI30);
+        LibApplication.i(8584, objI29, objI30);
+        Object objI31 = LibApplication.i(6, this);
+        Object objI32 = LibApplication.i(12199);
+        LibApplication.i(10943, objI32);
+        LibApplication.i(9535, objI31, objI32);
+        Object objI33 = LibApplication.i(6, this);
+        Object objI34 = LibApplication.i(13043);
+        LibApplication.i(8563, objI34);
+        LibApplication.i(3897, objI33, objI34);
+        Object objI35 = LibApplication.i(6, this);
+        Object objI36 = LibApplication.i(4724);
+        LibApplication.i(3508, objI36);
+        LibApplication.i(7360, objI35, objI36);
+        Object objI37 = LibApplication.i(6, this);
+        Object objI38 = LibApplication.i(3533);
+        LibApplication.i(6071, objI38);
+        LibApplication.i(7554, objI37, objI38);
+        Object objI39 = LibApplication.i(6, this);
+        Object objI40 = LibApplication.i(11296);
+        LibApplication.i(10773, objI40);
+        LibApplication.i(9259, objI39, objI40);
+        Object objI41 = LibApplication.i(6, this);
+        Object objI42 = LibApplication.i(6610);
+        LibApplication.i(12032, objI42);
+        LibApplication.i(7714, objI41, objI42);
+        Object objI43 = LibApplication.i(6, this);
+        Object objI44 = LibApplication.i(8031);
+        LibApplication.i(13124, objI44);
+        LibApplication.i(7242, objI43, objI44);
+        Object objI45 = LibApplication.i(6, this);
+        Object objI46 = LibApplication.i(5740);
+        LibApplication.i(9601, objI46);
+        LibApplication.i(11020, objI45, objI46);
+        Object objI47 = LibApplication.i(6, this);
+        Object objI48 = LibApplication.i(7319);
+        LibApplication.i(7664, objI48);
+        LibApplication.i(5753, objI47, objI48);
+        Object objI49 = LibApplication.i(6, this);
+        Object objI50 = LibApplication.i(11082);
+        LibApplication.i(7978, objI50);
+        LibApplication.i(6530, objI49, objI50);
+        Object objI51 = LibApplication.i(6, this);
+        Object objI52 = LibApplication.i(11143);
+        LibApplication.i(IronSourceConstants.errorCode_adClosed, objI52);
+        LibApplication.i(9574, objI51, objI52);
+        Object objI53 = LibApplication.i(6, this);
+        Object objI54 = LibApplication.i(4626);
+        LibApplication.i(5597, objI54);
+        LibApplication.i(4122, objI53, objI54);
+        Object objI55 = LibApplication.i(6, this);
+        Object objI56 = LibApplication.i(4012);
+        LibApplication.i(5683, objI56);
+        LibApplication.i(8757, objI55, objI56);
+        Object objI57 = LibApplication.i(6, this);
+        Object objI58 = LibApplication.i(8543);
+        LibApplication.i(5988, objI58);
+        LibApplication.i(2379, objI57, objI58);
+        Object objI59 = LibApplication.i(6, this);
+        Object objI60 = LibApplication.i(6313);
+        LibApplication.i(9468, objI60);
+        LibApplication.i(9659, objI59, objI60);
+        Object objI61 = LibApplication.i(6, this);
+        Object objI62 = LibApplication.i(5598);
+        LibApplication.i(6139, objI62);
+        LibApplication.i(11911, objI61, objI62);
+        Object objI63 = LibApplication.i(6, this);
+        Object objI64 = LibApplication.i(6524);
+        LibApplication.i(7583, objI64);
+        LibApplication.i(12636, objI63, objI64);
+        Object objI65 = LibApplication.i(6, this);
+        Object objI66 = LibApplication.i(13080);
+        LibApplication.i(6433, objI66);
+        LibApplication.i(11185, objI65, objI66);
+        Object objI67 = LibApplication.i(6, this);
+        Object objI68 = LibApplication.i(9989);
+        LibApplication.i(11437, objI68);
+        LibApplication.i(6743, objI67, objI68);
+        Object objI69 = LibApplication.i(6, this);
+        Object objI70 = LibApplication.i(10984);
+        LibApplication.i(9288, objI70);
+        LibApplication.i(7904, objI69, objI70);
+        Object objI71 = LibApplication.i(6, this);
+        LibApplication.i(3082, objI71, LibApplication.i(348, objI71));
+        LibApplication.i(7791, objI71, LibApplication.i(1332, objI71));
+        Object objI72 = LibApplication.i(32, objI71);
+        Object objI73 = LibApplication.i(10518);
+        LibApplication.i(12733, objI73);
+        LibApplication.i(12086, objI72, objI73);
+        Object objI74 = LibApplication.i(6, this);
+        LibApplication.i(3082, objI74, LibApplication.i(348, objI74));
+        LibApplication.i(4401, this, true);
+    }
+
+    public void resize(int i, int i9) {
+        float fI;
+        Object objI = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI2 = LibApplication.i(74);
+        LibApplication.i(78, objI2);
+        LibApplication.i(885, objI2, LibApplication.i(1177, this));
+        LibApplication.i(28, objI2, Application.s("픧"));
+        LibApplication.i(857, objI, LibApplication.i(75, objI2));
+        LibApplication.i(8012, LibApplication.i(12940, LibApplication.i(79, LibApplication.i(6, this))), i, i9, true);
+        float f2 = i;
+        float fI2 = (LibApplication.i(42, LibApplication.i(941, this)) * f2) / LibApplication.i(85, LibApplication.i(941, this));
+        float f3 = i9;
+        float f9 = 0.8f * f3;
+        if (fI2 > f9) {
+            fI = (LibApplication.i(85, LibApplication.i(941, this)) * f9) / LibApplication.i(42, LibApplication.i(941, this));
+        } else {
+            f9 = fI2;
+            fI = f2;
+        }
+        LibApplication.i(175, LibApplication.i(941, this), (f2 - fI) * 0.5f, (f3 - f9) * 0.5f, fI, f9);
+        Object objI3 = LibApplication.i(1421, this);
+        float f10 = f3 * 0.05f;
+        LibApplication.i(266, objI3, (LibApplication.i(85, objI3) * f10) / LibApplication.i(42, LibApplication.i(1421, this)), f10);
+        Object objI4 = LibApplication.i(1421, this);
+        LibApplication.i(131, objI4, (f2 - LibApplication.i(85, objI4)) * 0.5f, LibApplication.i(92, LibApplication.i(941, this)) - LibApplication.i(42, LibApplication.i(1421, this)));
+    }
+
+    public void resume() {
+        Object objI = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI2 = LibApplication.i(74);
+        LibApplication.i(78, objI2);
+        LibApplication.i(885, objI2, LibApplication.i(1177, this));
+        LibApplication.i(28, objI2, Application.s("픨"));
+        LibApplication.i(857, objI, LibApplication.i(75, objI2));
+    }
+
+    public void show() {
+        Object objI = LibApplication.i(6, this);
+        Object objI2 = LibApplication.i(12406);
+        Object objI3 = LibApplication.i(7198);
+        LibApplication.i(11133, objI3);
+        LibApplication.i(11308, objI2, this, objI3);
+        LibApplication.i(3708, objI, objI2);
+        Object objI4 = LibApplication.i(6, this);
+        Object objI5 = LibApplication.i(6988);
+        LibApplication.i(12104, objI5);
+        LibApplication.i(3976, objI4, objI5);
+        Object objI6 = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI7 = LibApplication.i(74);
+        LibApplication.i(78, objI7);
+        LibApplication.i(885, objI7, LibApplication.i(1177, this));
+        LibApplication.i(28, objI7, Application.s("픩"));
+        LibApplication.i(857, objI6, LibApplication.i(75, objI7));
+        Object objI8 = LibApplication.i(943, LibApplication.i(6, this));
+        Object objI9 = LibApplication.i(74);
+        LibApplication.i(78, objI9);
+        LibApplication.i(28, objI9, LibApplication.i(1758, LibApplication.i(32, LibApplication.i(6, this))));
+        String strS = Application.s("픝");
+        LibApplication.i(28, objI9, strS);
+        LibApplication.i(158, objI8, LibApplication.i(75, objI9), TextureAtlas.class);
+        try {
+            ((Field) LibApplication.i(1804, LibApplication.i(1177, LibApplication.i(335, (C3270a) LibApplication.i(740, LibApplication.i(IronSourceError.ERROR_BN_RELOAD_SKIP_INVISIBLE)))), Application.s("픪"))).set(LibApplication.i(335, (C3270a) LibApplication.i(740, LibApplication.i(IronSourceError.ERROR_BN_RELOAD_SKIP_INVISIBLE))), Application.s("픫"));
+        } catch (Exception e) {
+            LibApplication.i(811, e);
+        }
+        Object objI10 = LibApplication.i(943, LibApplication.i(6, this));
+        Object objI11 = LibApplication.i(74);
+        LibApplication.i(78, objI11);
+        LibApplication.i(28, objI11, LibApplication.i(1758, LibApplication.i(32, LibApplication.i(6, this))));
+        LibApplication.i(28, objI11, strS);
+        LibApplication.i(4832, objI10, LibApplication.i(75, objI11));
+        Object objI12 = LibApplication.i(6, this);
+        Object objI13 = LibApplication.i(943, objI12);
+        Object objI14 = LibApplication.i(74);
+        LibApplication.i(78, objI14);
+        LibApplication.i(28, objI14, LibApplication.i(1758, LibApplication.i(32, LibApplication.i(6, this))));
+        LibApplication.i(28, objI14, strS);
+        LibApplication.i(9025, objI12, (TextureAtlas) LibApplication.i(161, objI13, LibApplication.i(75, objI14), TextureAtlas.class));
+        LibApplication.i(4557, this, LibApplication.i(-7, LibApplication.i(2453, LibApplication.i(6, this)), Application.s("픬")));
+        LibApplication.i(8572, this, LibApplication.i(-7, LibApplication.i(2453, LibApplication.i(6, this)), Application.s("픭")));
+        Object objI15 = LibApplication.i(200);
+        LibApplication.i(267, objI15, LibApplication.i(10873, this));
+        LibApplication.i(12998, this, objI15);
+        LibApplication.i(378, LibApplication.i(79, LibApplication.i(6, this)), objI15);
+        Object objI16 = LibApplication.i(200);
+        LibApplication.i(267, objI16, LibApplication.i(9583, this));
+        LibApplication.i(8663, this, objI16);
+        LibApplication.i(378, LibApplication.i(79, LibApplication.i(6, this)), objI16);
+        LibApplication.i(10431, LibApplication.i(32, LibApplication.i(6, this)), LibApplication.i(657, LibApplication.i(IronSourceError.ERROR_BN_RELOAD_SKIP_INVISIBLE), LibApplication.i(4067, LibApplication.i(32, LibApplication.i(6, this)))));
+        long jI = LibApplication.i(2191);
+        Object objI17 = LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this)));
+        String strS2 = Application.s("픮");
+        if (jI - LibApplication.i(IronSourceError.ERROR_DO_RV_CALL_LOAD_BEFORE_SHOW, objI17, strS2, 0L) > 604800000) {
+            LibApplication.i(5591, LibApplication.i(426, LibApplication.i(6, this)));
+            LibApplication.i(1099, LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this))), strS2, jI);
+            LibApplication.i(399, LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this))));
+        }
+        LibApplication.i(12970, LibApplication.i(6, this), LibApplication.i(8206));
+        Object objI18 = LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this)));
+        String strS3 = Application.s("픡");
+        String strS4 = Application.s("픢");
+        Object objI19 = LibApplication.i(1651, objI18, strS3, strS4);
+        if ((LibApplication.i(107, objI19, strS4) || !LibApplication.i(1352, LibApplication.i(241, LibApplication.i(6, this)), objI19)) && !LibApplication.i(1352, LibApplication.i(241, LibApplication.i(6, this)), LibApplication.i(12396, LibApplication.i(4319)))) {
+            Object objI20 = LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this)));
+            Object objI21 = LibApplication.i(190, LibApplication.i(241, LibApplication.i(6, this)));
+            String strS5 = Application.s("픯");
+            if (LibApplication.i(181, objI20, Application.s("픰"), LibApplication.i(107, objI21, strS5))) {
+                LibApplication.i(1352, LibApplication.i(241, LibApplication.i(6, this)), strS5);
+            } else {
+                LibApplication.i(1352, LibApplication.i(241, LibApplication.i(6, this)), Application.s("픱"));
+            }
+        }
+        Object objI22 = LibApplication.i(6, this);
+        Object objI23 = LibApplication.i(12517);
+        LibApplication.i(3997, objI23, LibApplication.i(181, LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, objI22)), Application.s("픲"), true), LibApplication.i(181, LibApplication.i(C2178R.styleable.AppCompatTheme_windowMinWidthMajor, LibApplication.i(32, LibApplication.i(6, this))), Application.s("픳"), true));
+        LibApplication.i(4993, objI22, objI23);
+        LibApplication.i(7456, LibApplication.i(1290, LibApplication.i(6, this)), LibApplication.i(943, LibApplication.i(6, this)));
+        LibApplication.i(158, LibApplication.i(943, LibApplication.i(6, this)), Application.s("픠"), TextureAtlas.class);
+        LibApplication.i(158, LibApplication.i(943, LibApplication.i(6, this)), Application.s("픟"), TextureAtlas.class);
+        LibApplication.i(2647, LibApplication.i(6, this), LibApplication.i(10076));
+        LibApplication.i(2647, LibApplication.i(6, this), LibApplication.i(11391));
+        LibApplication.i(4275, LibApplication.i(335, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픴"), LibApplication.i(10842, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픵"), LibApplication.i(5665, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픶"), LibApplication.i(5614, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픷"), LibApplication.i(8376, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픸"), LibApplication.i(6287, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픹"), LibApplication.i(4764, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픺"), LibApplication.i(6871, LibApplication.i(6, this)));
+        Object objI24 = LibApplication.i(59, LibApplication.i(6, this));
+        Object objI25 = LibApplication.i(7540, LibApplication.i(6, this));
+        String strS6 = Application.s("픻");
+        LibApplication.i(87, objI24, strS6, objI25);
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("피"), LibApplication.i(3476, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픽"), LibApplication.i(10395, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픾"), LibApplication.i(7956, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("픿"), LibApplication.i(8224, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핀"), LibApplication.i(7509, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핁"), LibApplication.i(10259, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핂"), LibApplication.i(4684, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핃"), LibApplication.i(6741, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("필"), LibApplication.i(12322, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핅"), LibApplication.i(12584, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핆"), LibApplication.i(9154, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핇"), LibApplication.i(11569, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핈"), LibApplication.i(9213, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핉"), LibApplication.i(9572, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핊"), LibApplication.i(10086, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핋"), LibApplication.i(4142, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핌"), LibApplication.i(6557, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핍"), LibApplication.i(4412, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핎"), LibApplication.i(12683, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핏"), LibApplication.i(6450, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핐"), LibApplication.i(6312, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핑"), LibApplication.i(3751, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핒"), LibApplication.i(9482, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핓"), LibApplication.i(6000, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핔"), LibApplication.i(3642, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핕"), LibApplication.i(7772, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핖"), LibApplication.i(7251, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핗"), LibApplication.i(8241, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("하"), LibApplication.i(7939, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("학"), LibApplication.i(9258, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핚"), LibApplication.i(8748, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핛"), LibApplication.i(6241, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("한"), LibApplication.i(4010, LibApplication.i(6, this)));
+        LibApplication.i(87, LibApplication.i(59, LibApplication.i(6, this)), Application.s("핝"), LibApplication.i(10891, LibApplication.i(6, this)));
+        Object objI26 = LibApplication.i(59, LibApplication.i(6, this));
+        Object objI27 = LibApplication.i(3588);
+        LibApplication.i(5295, objI27, this);
+        LibApplication.i(11696, objI26, objI27);
+        Object objI28 = LibApplication.i(449, LibApplication.i(6, this));
+        if (objI28 != null && LibApplication.i(955, objI28, strS6)) {
+            Object objI29 = LibApplication.i(6, this);
+            LibApplication.i(2112, objI29, LibApplication.i(InterfaceC2747l1.c.b.f9619c, LibApplication.i(449, objI29), strS6));
+        }
+        if (LibApplication.i(-4, LibApplication.i(1564, LibApplication.i(6, this)))) {
+            if (LibApplication.i(-4, LibApplication.i(2119, LibApplication.i(335, LibApplication.i(6, this)))) || LibApplication.i(2818, LibApplication.i(335, LibApplication.i(6, this))) <= -1 || LibApplication.i(2789, LibApplication.i(335, LibApplication.i(6, this))) <= -1) {
+                LibApplication.i(2084, LibApplication.i(335, LibApplication.i(6, this)));
+            } else {
+                LibApplication.i(10173, LibApplication.i(59, LibApplication.i(6, this)), LibApplication.i(2119, LibApplication.i(335, LibApplication.i(6, this))));
+                LibApplication.i(3378, LibApplication.i(59, LibApplication.i(6, this)), LibApplication.i(2818, LibApplication.i(335, LibApplication.i(6, this))));
+                LibApplication.i(4315, LibApplication.i(59, LibApplication.i(6, this)), LibApplication.i(2789, LibApplication.i(335, LibApplication.i(6, this))));
+                LibApplication.i(12296, LibApplication.i(59, LibApplication.i(6, this)), LibApplication.i(11247, LibApplication.i(335, LibApplication.i(6, this))));
+                LibApplication.i(9863, LibApplication.i(59, LibApplication.i(6, this)), LibApplication.i(5104, LibApplication.i(335, LibApplication.i(6, this)), LibApplication.i(IronSourceError.ERROR_OLD_INIT_API_APP_KEY_IS_NULL, LibApplication.i(59, LibApplication.i(6, this))), LibApplication.i(1876, LibApplication.i(59, LibApplication.i(6, this))), LibApplication.i(2939, LibApplication.i(59, LibApplication.i(6, this)))));
+            }
+        } else if (!LibApplication.i(6856, LibApplication.i(335, LibApplication.i(6, this)), LibApplication.i(1564, LibApplication.i(6, this)))) {
+            LibApplication.i(2084, LibApplication.i(335, LibApplication.i(6, this)));
+        }
+        Object objI30 = LibApplication.i(863, LibApplication.i(6, this));
+        Object objI31 = LibApplication.i(74);
+        LibApplication.i(78, objI31);
+        LibApplication.i(28, objI31, Application.s("핞"));
+        LibApplication.i(8637, objI31, LibApplication.i(3240, LibApplication.i(59, LibApplication.i(6, this))));
+        LibApplication.i(857, objI30, LibApplication.i(75, objI31));
+        if (LibApplication.i(3240, LibApplication.i(59, LibApplication.i(6, this)))) {
+            LibApplication.i(10715, LibApplication.i(59, LibApplication.i(6, this)));
+        } else {
+            LibApplication.i(6194, LibApplication.i(335, LibApplication.i(6, this)), true);
+        }
+        Object objI32 = LibApplication.i(74);
+        LibApplication.i(78, objI32);
+        LibApplication.i(28, objI32, Application.s("핟"));
+        LibApplication.i(28, objI32, LibApplication.i(9943, LibApplication.i(426, LibApplication.i(6, this))));
+        LibApplication.i(28, objI32, Application.s("할"));
+        String strS7 = Application.s("핡");
+        LibApplication.i(28, objI32, LibApplication.i(1391, strS7));
+        LibApplication.i(8163, strS7, LibApplication.i(75, objI32));
+        LibApplication.i(6795, LibApplication.i(373), LibApplication.i(79, LibApplication.i(6, this)));
+        LibApplication.i(5529, LibApplication.i(373), 4, true);
+    }
+}
