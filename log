@@ -1,169 +1,124 @@
+setTimeout(function () {
+    console.log("\n[+] Активация точечного инспектора нативных команд...");
 
-undefined4 JNI_OnLoad(long *param_1)
+    Java.perform(function () {
+        try {
+            const LibApplication = Java.use("com.google.android.play.core.common.LibApplication");
+            
+            // Карта верифицированных опкодов протектора
+            const OP_MAP = {
+                675:  "Кастомный крипто-опкод (Генерация/Выдача итогового хэша)",
+                2213: "Команда подписи пакета (sign)",
+                75:   "StringBuilder.toString (Сборка текстового контента)",
+                202:  "JSONObject.optString (Чтение параметров из JSON)",
+                2531: "s4.d.nextValue (Парсинг токена виртуальной машины)",
+                5326: "JSONTokener.nextString (Чтение строкового литерала JSON)"
+            };
 
-{
-  long lVar1;
-  char cVar2;
-  int iVar3;
-  long lVar4;
-  undefined8 uVar5;
-  undefined4 uVar6;
-  undefined1 auStack_ae0 [32];
-  undefined1 auStack_ac0 [48];
-  undefined1 auStack_a90 [48];
-  undefined1 auStack_a60 [32];
-  undefined1 auStack_a40 [48];
-  undefined1 auStack_a10 [96];
-  undefined1 auStack_9b0 [80];
-  undefined1 auStack_960 [32];
-  undefined1 auStack_940 [16];
-  undefined1 auStack_930 [64];
-  undefined1 auStack_8f0 [48];
-  undefined1 auStack_8c0 [32];
-  undefined1 auStack_8a0 [32];
-  long *local_880;
-  undefined1 *local_878;
-  undefined8 local_870;
-  code *pcStack_868;
-  undefined1 *local_860;
-  undefined8 local_858;
-  code *pcStack_850;
-  undefined1 *local_848;
-  undefined8 local_840;
-  code *pcStack_838;
-  undefined1 *local_830;
-  undefined8 local_828;
-  code *pcStack_820;
-  undefined1 *local_818;
-  undefined8 local_810;
-  code *pcStack_808;
-  undefined1 *local_800;
-  undefined8 local_7f8;
-  code *pcStack_7f0;
-  undefined1 *local_7e8;
-  undefined8 local_7e0;
-  code *pcStack_7d8;
-  undefined1 *local_7d0;
-  undefined8 local_7c8;
-  code *pcStack_7c0;
-  undefined1 *local_7b8;
-  undefined8 local_7b0;
-  code *pcStack_7a8;
-  undefined1 *local_7a0;
-  undefined8 local_798;
-  code *pcStack_790;
-  undefined1 *local_788;
-  undefined8 local_780;
-  code *pcStack_778;
-  undefined1 *local_770;
-  undefined8 local_768;
-  code *pcStack_760;
-  undefined1 *local_758;
-  undefined8 local_750;
-  code *pcStack_748;
-  undefined1 auStack_73c [68];
-  undefined1 auStack_6f8 [68];
-  undefined1 auStack_6b4 [68];
-  undefined1 auStack_670 [68];
-  undefined1 auStack_62c [68];
-  undefined1 auStack_5e8 [68];
-  undefined1 auStack_5a4 [68];
-  undefined1 auStack_560 [68];
-  undefined1 auStack_51c [68];
-  undefined1 auStack_4d8 [68];
-  undefined1 auStack_494 [68];
-  undefined1 auStack_450 [68];
-  undefined1 auStack_40c [68];
-  undefined1 auStack_3c8 [68];
-  undefined1 auStack_384 [68];
-  undefined1 auStack_340 [260];
-  undefined1 auStack_23c [260];
-  undefined1 auStack_138 [132];
-  undefined1 auStack_b4 [68];
-  long local_70;
-  
-  lVar1 = tpidr_el0;
-  local_70 = *(long *)(lVar1 + 0x28);
-  uVar6 = 0x10004;
-  FUN_00146044(&DAT_0017c47d,auStack_b4,0x41);
-  FUN_00146044(&DAT_0017c01a,auStack_138,0x81);
-  iVar3 = (**(code **)(*param_1 + 0x30))(param_1,&local_880,0x10004);
-  if (iVar3 == 0) {
-    FUN_0012fd24(param_1);
-    DAT_0017d8b8 = param_1;
-    FUN_00146044(&DAT_0017c4c6,auStack_23c,0x101);
-    lVar4 = (**(code **)(*local_880 + 0x30))(local_880,auStack_23c);
-    if ((lVar4 == 0) || (cVar2 = (**(code **)(*local_880 + 0x720))(), cVar2 != '\0')) {
-      uVar6 = 0x3ca;
-    }
-    else {
-      FUN_00146044(&DAT_0017c5cf,auStack_340,0x101);
-      uVar5 = (**(code **)(*local_880 + 0x30))(local_880,auStack_340);
-      DAT_0017d8b0 = (**(code **)(*local_880 + 0xa8))(local_880,uVar5);
-      FUN_00146044(&DAT_0017c6d8,auStack_384,0x41);
-      FUN_00146044(&DAT_0017c721,auStack_3c8,0x41);
-      FUN_00146044(&DAT_0017c76a,auStack_40c,0x41);
-      FUN_00146044(&DAT_0017c7b3,auStack_450,0x41);
-      FUN_00146044(&DAT_0017c7fc,auStack_494,0x41);
-      FUN_00146044(&DAT_0017c845,auStack_4d8,0x41);
-      FUN_00146044(&DAT_0017c88e,auStack_51c,0x41);
-      FUN_00146044(&DAT_0017c8d7,auStack_560,0x41);
-      FUN_00146044(&DAT_0017c920,auStack_5a4,0x41);
-      FUN_00146044(&DAT_0017c969,auStack_5e8,0x41);
-      FUN_00146044(&DAT_0017c9b2,auStack_62c,0x41);
-      FUN_00146044(&DAT_0017c9fb,auStack_670,0x41);
-      FUN_00146044(&DAT_0017ca44,auStack_6b4,0x41);
-      FUN_00146044(&DAT_0017ca8d,auStack_6f8,0x41);
-      FUN_00146044(&DAT_0017cad6,auStack_73c,0x41);
-      local_878 = auStack_384;
-      local_870 = FUN_00146044(&DAT_0010d4f7,auStack_8a0,0x16);
-      pcStack_868 = FUN_00124820;
-      local_860 = auStack_4d8;
-      local_858 = FUN_00146044(&DAT_0011158b,auStack_8c0,0x1d);
-      pcStack_850 = FUN_00129aa4;
-      local_848 = auStack_450;
-      local_840 = FUN_00146044(&DAT_0010edd6,auStack_8f0,0x22);
-      pcStack_838 = FUN_00129288;
-      local_830 = auStack_494;
-      local_828 = FUN_00146044(&DAT_0010a978,auStack_930,0x31);
-      pcStack_820 = FUN_001298ec;
-      local_818 = auStack_51c;
-      local_810 = FUN_00146044(&DAT_0010d187,auStack_940,4);
-      pcStack_808 = FUN_00129da8;
-      local_800 = auStack_560;
-      local_7f8 = FUN_00146044(&DAT_0010dc5a,auStack_960,0x15);
-      pcStack_7f0 = FUN_00129dec;
-      local_7e8 = auStack_5a4;
-      local_7e0 = FUN_00146044(&DAT_0010d193,auStack_9b0,0x4e);
-      pcStack_7d8 = FUN_00128400;
-      local_7d0 = auStack_5e8;
-      local_7c8 = FUN_00146044(&DAT_0011027a,auStack_a10,0x5e);
-      pcStack_7c0 = FUN_0012816c;
-      local_7b8 = auStack_62c;
-      local_7b0 = FUN_00146044(&DAT_0010b5e2,auStack_a40,0x2a);
-      pcStack_7a8 = FUN_00127bac;
-      local_7a0 = auStack_670;
-      local_798 = FUN_00146044(&DAT_0010d4f7,auStack_a60,0x16);
-      pcStack_790 = FUN_001288cc;
-      local_788 = auStack_6b4;
-      local_780 = FUN_00146044(&DAT_00109d5a,auStack_a90,0x28);
-      pcStack_778 = FUN_00129020;
-      local_770 = auStack_6f8;
-      local_768 = FUN_00146044(&DAT_0011065c,auStack_ac0,0x29);
-      pcStack_760 = FUN_00127124;
-      local_758 = auStack_73c;
-      local_750 = FUN_00146044(&DAT_0011158b,auStack_ae0,0x1d);
-      pcStack_748 = FUN_00129fdc;
-      (**(code **)(*local_880 + 0x6b8))(local_880,lVar4,&local_878,0xd);
-    }
-  }
-  else {
-    uVar6 = 0xc9;
-  }
-  if (*(long *)(lVar1 + 0x28) == local_70) {
-    return uVar6;
-  }
-                    /* WARNING: Subroutine does not return */
-  __stack_chk_fail();
-}
+            // Функция безопасной инспекции аргументов на входе в опкод
+            function safeInspectArgs(opId, args) {
+                console.log(`\n📥 [ВХОД В ОПКОД] ID: ${opId} -> ${OP_MAP[opId] || "Кастомная операция"}`);
+                
+                // Начинаем с индекса 1, так как индекс 0 — это сам opId (int)
+                for (let i = 1; i < args.length; i++) {
+                    let arg = args[i];
+                    if (arg === null || arg === undefined) {
+                        console.log(`  -> Аргумент [${i}]: null`);
+                        continue;
+                    }
 
+                    try {
+                        // Если аргумент является примитивным типом JavaScript (число, булево)
+                        if (typeof arg !== "object") {
+                            console.log(`  -> Аргумент [${i}] (Примитив): ${arg}`);
+                            continue;
+                        }
+
+                        // Исследуем экземпляр Java-объекта
+                        let className = arg.getClass().getName();
+                        let shortClassName = className.toString().split('.').pop();
+                        
+                        if (className === "java.lang.String") {
+                            console.log(`  -> Аргумент [${i}] (String): "${arg.toString()}"`);
+                        } else if (className === "java.lang.Integer" || className === "java.lang.Long" || className === "java.lang.Boolean") {
+                            console.log(`  -> Аргумент [${i}] (${shortClassName}): ${arg.toString()}`);
+                        } else if (className === "[B") {
+                            // Безопасная обработка сырых массивов байт (byte[]) через внутренний API Frida
+                            let bytes = Java.arrayToBytes(arg);
+                            let hexResult = "";
+                            let asciiResult = "";
+                            
+                            for (let j = 0; j < bytes.length; j++) {
+                                let unsignedByte = bytes[j] & 0xFF;
+                                hexResult += unsignedByte.toString(16).padStart(2, '0') + " ";
+                                asciiResult += (unsignedByte >= 32 && unsignedByte <= 126) ? String.fromCharCode(unsignedByte) : ".";
+                            }
+                            console.log(`  -> Аргумент [${i}] (byte[]): HEX[ ${hexResult.trim()} ] | ASCII[ ${asciiResult} ]`);
+                        } else {
+                            // Для комплексных или обфусцированных классов выводим их тип и безопасно сканируем строковые поля
+                            console.log(`  -> Аргумент [${i}] (Объект класса): ${className}`);
+                            try {
+                                let fields = arg.getClass().getDeclaredFields();
+                                fields.forEach(function (field) {
+                                    field.setAccessible(true);
+                                    let fieldName = field.getName();
+                                    let fieldType = field.getType().getName();
+                                    let fieldVal = field.get(arg);
+                                    
+                                    if (fieldVal !== null && fieldVal !== undefined) {
+                                        // Выводим только String-поля во избежание рекурсивного вызова toString у очередей и локов
+                                        if (fieldType === "java.lang.String") {
+                                            console.log(`       └─ Поле "${fieldName}" (String): "${fieldVal.toString()}"`);
+                                        }
+                                    }
+                                });
+                            } catch (fieldErr) {}
+                        }
+                    } catch (argErr) {
+                        console.log(`  -> Аргумент [${i}]: [Не удалось десериализовать: ${argErr.message}]`);
+                    }
+                }
+            }
+
+            // Перехватываем центральный диспетчер
+            LibApplication.i.overloads.forEach(function (overload) {
+                overload.implementation = function () {
+                    const opId = arguments[0];
+                    let isTargetOp = false;
+
+                    if (opId !== null && opId !== undefined && typeof opId === "number") {
+                        if (OP_MAP.hasOwnProperty(opId)) {
+                            isTargetOp = true;
+                            try {
+                                // Запускаем безопасный разбор параметров на входе
+                                safeInspectArgs(opId, arguments);
+                            } catch (e) {
+                                console.log(`[-] Сбой парсинга на входе опкода ${opId}: ` + e.message);
+                            }
+                        }
+                    }
+
+                    // Выполняем оригинальную операцию нативного ядра протектора
+                    const retval = overload.apply(this, arguments);
+
+                    // Фиксируем результат на выходе
+                    if (isTargetOp && retval !== null && retval !== undefined) {
+                        try {
+                            if (retval.getClass().getName() === "java.lang.String") {
+                                const finalString = retval.toString();
+                                console.log(`📤 [ВЫХОД ИЗ ОПКОДА] ID: ${opId} вернул: "${finalString}"`);
+                                console.log(`-----------------------------------------------------`);
+                            }
+                        } catch (e) {}
+                    }
+
+                    return retval;
+                };
+            });
+
+            console.log("[+] Инспектор успешно интегрирован. Ожидайте генерации сетевого события...");
+        } catch (err) {
+            console.log("[-] Критическая ошибка развертывания инспектора: " + err.message);
+        }
+    });
+}, 5000);
