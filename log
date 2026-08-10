@@ -1,124 +1,2832 @@
-setTimeout(function () {
-    console.log("\n[+] Активация точечного инспектора нативных команд...");
-
-    Java.perform(function () {
-        try {
-            const LibApplication = Java.use("com.google.android.play.core.common.LibApplication");
-            
-            // Карта верифицированных опкодов протектора
-            const OP_MAP = {
-                675:  "Кастомный крипто-опкод (Генерация/Выдача итогового хэша)",
-                2213: "Команда подписи пакета (sign)",
-                75:   "StringBuilder.toString (Сборка текстового контента)",
-                202:  "JSONObject.optString (Чтение параметров из JSON)",
-                2531: "s4.d.nextValue (Парсинг токена виртуальной машины)",
-                5326: "JSONTokener.nextString (Чтение строкового литерала JSON)"
-            };
-
-            // Функция безопасной инспекции аргументов на входе в опкод
-            function safeInspectArgs(opId, args) {
-                console.log(`\n📥 [ВХОД В ОПКОД] ID: ${opId} -> ${OP_MAP[opId] || "Кастомная операция"}`);
-                
-                // Начинаем с индекса 1, так как индекс 0 — это сам opId (int)
-                for (let i = 1; i < args.length; i++) {
-                    let arg = args[i];
-                    if (arg === null || arg === undefined) {
-                        console.log(`  -> Аргумент [${i}]: null`);
-                        continue;
-                    }
-
-                    try {
-                        // Если аргумент является примитивным типом JavaScript (число, булево)
-                        if (typeof arg !== "object") {
-                            console.log(`  -> Аргумент [${i}] (Примитив): ${arg}`);
-                            continue;
-                        }
-
-                        // Исследуем экземпляр Java-объекта
-                        let className = arg.getClass().getName();
-                        let shortClassName = className.toString().split('.').pop();
-                        
-                        if (className === "java.lang.String") {
-                            console.log(`  -> Аргумент [${i}] (String): "${arg.toString()}"`);
-                        } else if (className === "java.lang.Integer" || className === "java.lang.Long" || className === "java.lang.Boolean") {
-                            console.log(`  -> Аргумент [${i}] (${shortClassName}): ${arg.toString()}`);
-                        } else if (className === "[B") {
-                            // Безопасная обработка сырых массивов байт (byte[]) через внутренний API Frida
-                            let bytes = Java.arrayToBytes(arg);
-                            let hexResult = "";
-                            let asciiResult = "";
-                            
-                            for (let j = 0; j < bytes.length; j++) {
-                                let unsignedByte = bytes[j] & 0xFF;
-                                hexResult += unsignedByte.toString(16).padStart(2, '0') + " ";
-                                asciiResult += (unsignedByte >= 32 && unsignedByte <= 126) ? String.fromCharCode(unsignedByte) : ".";
-                            }
-                            console.log(`  -> Аргумент [${i}] (byte[]): HEX[ ${hexResult.trim()} ] | ASCII[ ${asciiResult} ]`);
-                        } else {
-                            // Для комплексных или обфусцированных классов выводим их тип и безопасно сканируем строковые поля
-                            console.log(`  -> Аргумент [${i}] (Объект класса): ${className}`);
-                            try {
-                                let fields = arg.getClass().getDeclaredFields();
-                                fields.forEach(function (field) {
-                                    field.setAccessible(true);
-                                    let fieldName = field.getName();
-                                    let fieldType = field.getType().getName();
-                                    let fieldVal = field.get(arg);
-                                    
-                                    if (fieldVal !== null && fieldVal !== undefined) {
-                                        // Выводим только String-поля во избежание рекурсивного вызова toString у очередей и локов
-                                        if (fieldType === "java.lang.String") {
-                                            console.log(`       └─ Поле "${fieldName}" (String): "${fieldVal.toString()}"`);
-                                        }
-                                    }
-                                });
-                            } catch (fieldErr) {}
-                        }
-                    } catch (argErr) {
-                        console.log(`  -> Аргумент [${i}]: [Не удалось десериализовать: ${argErr.message}]`);
-                    }
-                }
-            }
-
-            // Перехватываем центральный диспетчер
-            LibApplication.i.overloads.forEach(function (overload) {
-                overload.implementation = function () {
-                    const opId = arguments[0];
-                    let isTargetOp = false;
-
-                    if (opId !== null && opId !== undefined && typeof opId === "number") {
-                        if (OP_MAP.hasOwnProperty(opId)) {
-                            isTargetOp = true;
-                            try {
-                                // Запускаем безопасный разбор параметров на входе
-                                safeInspectArgs(opId, arguments);
-                            } catch (e) {
-                                console.log(`[-] Сбой парсинга на входе опкода ${opId}: ` + e.message);
-                            }
-                        }
-                    }
-
-                    // Выполняем оригинальную операцию нативного ядра протектора
-                    const retval = overload.apply(this, arguments);
-
-                    // Фиксируем результат на выходе
-                    if (isTargetOp && retval !== null && retval !== undefined) {
-                        try {
-                            if (retval.getClass().getName() === "java.lang.String") {
-                                const finalString = retval.toString();
-                                console.log(`📤 [ВЫХОД ИЗ ОПКОДА] ID: ${opId} вернул: "${finalString}"`);
-                                console.log(`-----------------------------------------------------`);
-                            }
-                        } catch (e) {}
-                    }
-
-                    return retval;
-                };
-            });
-
-            console.log("[+] Инспектор успешно интегрирован. Ожидайте генерации сетевого события...");
-        } catch (err) {
-            console.log("[-] Критическая ошибка развертывания инспектора: " + err.message);
-        }
-    });
-}, 5000);
+📥 [ВХОД] Метод запущен. Активируем Stalker для перехвата "живого" кода...
+   [LIVE ASM] 0x7277669f6c: b #0x7277669f7c
+   [LIVE ASM] 0x7277669f7c: ldr x0, [x19, #0xa0]
+   [LIVE ASM] 0x7277669f80: str wzr, [x19, #0x90]
+   [LIVE ASM] 0x7277669f84: str xzr, [x19, #0xa0]
+   [LIVE ASM] 0x7277669f88: cbz x0, #0x7277669f90
+   [LIVE ASM] 0x7277669f8c: bl #0x7277769cd4
+   [LIVE ASM] 0x7277669f90: ldr x0, [x19, #0x98]
+   [LIVE ASM] 0x7277669f94: str xzr, [x19, #0x98]
+   [LIVE ASM] 0x7277669f98: cbz x0, #0x7277669fa8
+   [LIVE ASM] 0x7277669f9c: ldr x19, [sp, #0x10]
+   [LIVE ASM] 0x7277669fa0: ldp x29, x30, [sp], #0x20
+   [LIVE ASM] 0x7277669fa4: b #0x7277769cd4
+   [LIVE ASM] 0x7277769cd4: stp x29, x30, [sp, #-0x40]!
+   [LIVE ASM] 0x7277769cd8: stp x24, x23, [sp, #0x10]
+   [LIVE ASM] 0x7277769cdc: bl #0x727776beac
+   [LIVE ASM] 0x7277769ce0: mov x29, sp
+   [LIVE ASM] 0x7277769ce4: mov x19, x0
+   [LIVE ASM] 0x7277769ce8: adrp x24, #0x727844c000
+   [LIVE ASM] 0x7277769cec: adrp x20, #0x727844c000
+   [LIVE ASM] 0x7277769cf0: add x20, x20, #0xc30
+   [LIVE ASM] 0x7277769cf4: add x23, x19, #8
+   [LIVE ASM] 0x7277769cf8: ldar w21, [x23]
+   [LIVE ASM] 0x7277769cfc: cmp w21, #2
+   [LIVE ASM] 0x7277769d00: b.lt #0x7277769d28
+   [LIVE ASM] 0x7277769d04: bl #0x727776bfe8
+   [LIVE ASM] 0x7277769d08: mov w22, w0
+   [LIVE ASM] 0x7277769d0c: sub w1, w21, #1
+   [LIVE ASM] 0x7277769d10: mov w0, w21
+   [LIVE ASM] 0x7277769d14: mov x2, x23
+   [LIVE ASM] 0x7277769d18: bl #0x727834e640
+   [LIVE ASM] 0x7277769d1c: cmp w0, w21
+   [LIVE ASM] 0x7277769d20: b.ne #0x7277769cf4
+   [LIVE ASM] 0x7277769d24: b #0x7277769d5c
+   [LIVE ASM] 0x7277769d5c: cmp w21, #2
+   [LIVE ASM] 0x7277769d60: b.ne #0x7277769e5c
+   [LIVE ASM] 0x7277769d64: tbnz w22, #0, #0x7277769ddc
+   [LIVE ASM] 0x7277769d68: b #0x7277769e5c
+   [LIVE ASM] 0x7277769e5c: bl #0x727776bde4
+   [LIVE ASM] 0x7277769e60: ldp x29, x30, [sp], #0x40
+   [LIVE ASM] 0x7277769e64: ret
+   [LIVE ASM] 0x7277667c80: ldp x20, x19, [sp, #0xe0]
+   [LIVE ASM] 0x7277667c84: ldp x22, x21, [sp, #0xd0]
+   [LIVE ASM] 0x7277667c88: ldp x24, x23, [sp, #0xc0]
+   [LIVE ASM] 0x7277667c8c: ldp x29, x30, [sp, #0xb0]
+   [LIVE ASM] 0x7277667c90: b #0x7277669988
+   [LIVE ASM] 0x7277669988: add sp, sp, #0xf0
+   [LIVE ASM] 0x727766998c: ret
+   [LIVE ASM] 0x727762a910: add w25, w25, #1
+   [LIVE ASM] 0x727762a914: b #0x727762a8b8
+   [LIVE ASM] 0x727762a8b8: ldr w8, [x27, #8]
+   [LIVE ASM] 0x727762a8bc: cmp w25, w8
+   [LIVE ASM] 0x727762a8c0: b.eq #0x727762a918
+   [LIVE ASM] 0x727762a918: ldr w8, [sp, #0x1c]
+   [LIVE ASM] 0x727762a91c: ldr w25, [x26, #0x10]
+   [LIVE ASM] 0x727762a920: orr w8, w8, w28
+   [LIVE ASM] 0x727762a924: tbnz w8, #0, #0x727762a934
+   [LIVE ASM] 0x727762a934: ldr x22, [sp]
+   [LIVE ASM] 0x727762a938: mov w0, w25
+   [LIVE ASM] 0x727762a93c: bl #0x72776352d0
+   [LIVE ASM] 0x727762a940: adrp x8, #0x727844a000
+   [LIVE ASM] 0x727762a944: mov x1, xzr
+   [LIVE ASM] 0x727762a948: ldr x0, [x8, #0xa8]
+   [LIVE ASM] 0x727762a94c: bl #0x7277635c8c
+   [LIVE ASM] 0x727762a950: cbz w28, #0x727762a960
+   [LIVE ASM] 0x727762a954: ldr x8, [x19, #0x60]
+   [LIVE ASM] 0x727762a958: ldr x9, [sp, #0x10]
+   [LIVE ASM] 0x727762a95c: str x8, [x9]
+   [LIVE ASM] 0x727762a960: ldr x8, [x19, #0x70]
+   [LIVE ASM] 0x727762a964: ldr x20, [sp, #8]
+   [LIVE ASM] 0x727762a968: cbz x8, #0x727762a9b0
+   [LIVE ASM] 0x727762a9b0: ldr x8, [x19, #0x58]
+   [LIVE ASM] 0x727762a9b4: str x8, [x20]
+   [LIVE ASM] 0x727762a9b8: tbz w28, #0, #0x727762a9c4
+   [LIVE ASM] 0x727762a9bc: mov w22, #1
+   [LIVE ASM] 0x727762a9c0: b #0x727762a9cc
+   [LIVE ASM] 0x727762a9cc: mov w0, w22
+   [LIVE ASM] 0x727762a9d0: bl #0x727762b394
+   [LIVE ASM] 0x727762a9d4: ldp x28, x27, [sp, #0x50]
+   [LIVE ASM] 0x727762a9d8: ldp x29, x30, [sp, #0x40]
+   [LIVE ASM] 0x727762a9dc: add sp, sp, #0xa0
+   [LIVE ASM] 0x727762a9e0: ret
+   [LIVE ASM] 0x72758af42c: stp x22, x21, [sp, #0x40]
+   [LIVE ASM] 0x72758af430: stp x20, x19, [sp, #0x50]
+   [LIVE ASM] 0x72758af434: mov x29, sp
+   [LIVE ASM] 0x72758af438: sub sp, sp, #0x90
+   [LIVE ASM] 0x72758af43c: nop
+   [LIVE ASM] 0x72758af440: adr x8, #0x7275904674
+   [LIVE ASM] 0x72758af444: ldrb w8, [x8, #0x15]
+   [LIVE ASM] 0x72758af448: tbz w8, #0, #0x72758af458
+   [LIVE ASM] 0x72758af44c: adrp x8, #0x7275906000
+   [LIVE ASM] 0x72758af450: ldr w8, [x8, #0xc28]
+   [LIVE ASM] 0x72758af454: cbz w8, #0x72758af47c
+   [LIVE ASM] 0x72758af47c: ldr x8, [x0]
+   [LIVE ASM] 0x72758af480: adrp x9, #0x7275906000
+   [LIVE ASM] 0x72758af484: add x9, x9, #0xc30
+   [LIVE ASM] 0x72758af488: mov x22, x2
+   [LIVE ASM] 0x72758af48c: mov x19, x0
+   [LIVE ASM] 0x72758af490: ldr x8, [x8, #0x488]
+   [LIVE ASM] 0x72758af494: ldr x1, [x9]
+   [LIVE ASM] 0x72758af498: ldr x2, [x9, #0x10]
+   [LIVE ASM] 0x72758af49c: blr x8
+   [LIVE ASM] 0x72758af4a0: ldr x8, [x19]
+   [LIVE ASM] 0x72758af4a4: mov x20, x0
+   [LIVE ASM] 0x72758af4a8: mov x0, x19
+   [LIVE ASM] 0x72758af4ac: mov x1, x20
+   [LIVE ASM] 0x72758af4b0: mov x2, xzr
+   [LIVE ASM] 0x72758af4b4: ldr x8, [x8, #0x548]
+   [LIVE ASM] 0x72758af4b8: blr x8
+   [LIVE ASM] 0x72758af4bc: mov x21, x0
+   [LIVE ASM] 0x72758af4c0: cbz x22, #0x72758af4e4
+   [LIVE ASM] 0x72758af4c4: ldr x8, [x19]
+   [LIVE ASM] 0x72758af4c8: mov x0, x19
+   [LIVE ASM] 0x72758af4cc: mov x1, x22
+   [LIVE ASM] 0x72758af4d0: mov x2, xzr
+   [LIVE ASM] 0x72758af4d4: ldr x8, [x8, #0x548]
+   [LIVE ASM] 0x72758af4d8: blr x8
+   [LIVE ASM] 0x72758af4dc: mov x23, x0
+   [LIVE ASM] 0x72758af4e0: b #0x72758af4ec
+   [LIVE ASM] 0x72758af4ec: mov x0, x23
+   [LIVE ASM] 0x72758af4f0: bl #0x72758f02f4
+   [LIVE ASM] 0x72758f02f4: mov x8, xzr
+   [LIVE ASM] 0x72758f02f8: ldrb w9, [x0, x8]
+   [LIVE ASM] 0x72758f02fc: add x8, x8, #1
+   [LIVE ASM] 0x72758f0300: cbnz w9, #0x72758f02f8
+   [LIVE ASM] 0x72758f02f8: ldrb w9, [x0, x8]
+   [LIVE ASM] 0x72758f02fc: add x8, x8, #1
+   [LIVE ASM] 0x72758f0300: cbnz w9, #0x72758f02f8
+   [LIVE ASM] 0x72758f0304: sub x0, x8, #1
+   [LIVE ASM] 0x72758f0308: ret
+   [LIVE ASM] 0x72758af4f4: mov x8, sp
+   [LIVE ASM] 0x72758af4f8: mov x9, sp
+   [LIVE ASM] 0x72758af4fc: mov x24, x0
+   [LIVE ASM] 0x72758af500: stur x8, [x29, #-0x90]
+   [LIVE ASM] 0x72758af504: lsl x8, x0, #1
+   [LIVE ASM] 0x72758af508: add x8, x8, #0x10
+   [LIVE ASM] 0x72758af50c: and x8, x8, #0xfffffffffffffff0
+   [LIVE ASM] 0x72758af510: sub x25, x9, x8
+   [LIVE ASM] 0x72758af514: mov sp, x25
+   [LIVE ASM] 0x72758af518: mov x0, x23
+   [LIVE ASM] 0x72758af51c: bl #0x72758f02f4
+   [LIVE ASM] 0x72758af520: mov x9, x25
+   [LIVE ASM] 0x72758af524: cbz x0, #0x72758af5cc
+   [LIVE ASM] 0x72758af528: mov w8, #1
+   [LIVE ASM] 0x72758af52c: mov w9, #2
+   [LIVE ASM] 0x72758af530: bfi x8, x24, #1, #0x3f
+   [LIVE ASM] 0x72758af534: sub x10, x9, x25
+   [LIVE ASM] 0x72758af538: mov w11, #0x5c5c
+   [LIVE ASM] 0x72758af53c: mov w12, #0x745c
+   [LIVE ASM] 0x72758af540: mov w13, #0x6e5c
+   [LIVE ASM] 0x72758af544: mov w14, #0x725c
+   [LIVE ASM] 0x72758af548: mov w15, #0x225c
+   [LIVE ASM] 0x72758af54c: mov x16, x23
+   [LIVE ASM] 0x72758af550: mov x9, x25
+   [LIVE ASM] 0x72758af554: nop
+   [LIVE ASM] 0x72758af558: adr x17, #0x7275884de0
+   [LIVE ASM] 0x72758af55c: b #0x72758af570
+   [LIVE ASM] 0x72758af570: add x1, x10, x9
+   [LIVE ASM] 0x72758af574: cmp x1, x8
+   [LIVE ASM] 0x72758af578: b.hi #0x72758af5cc
+   [LIVE ASM] 0x72758af57c: ldrb w1, [x16]
+   [LIVE ASM] 0x72758af580: sub w2, w1, #9
+   [LIVE ASM] 0x72758af584: cmp w2, #0x19
+   [LIVE ASM] 0x72758af588: b.hi #0x72758af5a4
+   [LIVE ASM] 0x72758af5a4: cmp w1, #0x5c
+   [LIVE ASM] 0x72758af5a8: b.ne #0x72758af560
+   [LIVE ASM] 0x72758af560: strb w1, [x9], #1
+   [LIVE ASM] 0x72758af564: subs x0, x0, #1
+   [LIVE ASM] 0x72758af568: add x16, x16, #1
+   [LIVE ASM] 0x72758af56c: b.eq #0x72758af5cc
+   [LIVE ASM] 0x72758af5cc: strb wzr, [x9]
+   [LIVE ASM] 0x72758af5d0: cbz x22, #0x72758af5ec
+   [LIVE ASM] 0x72758af5d4: ldr x8, [x19]
+   [LIVE ASM] 0x72758af5d8: mov x0, x19
+   [LIVE ASM] 0x72758af5dc: mov x1, x22
+   [LIVE ASM] 0x72758af5e0: mov x2, x23
+   [LIVE ASM] 0x72758af5e4: ldr x8, [x8, #0x550]
+   [LIVE ASM] 0x72758af5e8: blr x8
+   [LIVE ASM] 0x72758af5ec: mov x0, x25
+   [LIVE ASM] 0x72758af5f0: bl #0x72758f02f4
+   [LIVE ASM] 0x72758af5f4: sub x1, sp, #0x20
+   [LIVE ASM] 0x72758af5f8: mov x28, x0
+   [LIVE ASM] 0x72758af5fc: mov sp, x1
+   [LIVE ASM] 0x72758af600: adrp x0, #0x7275879000
+   [LIVE ASM] 0x72758af604: add x0, x0, #0x8c4
+   [LIVE ASM] 0x72758af608: mov w2, #0x1c
+   [LIVE ASM] 0x72758af60c: bl #0x72758e061c
+   [LIVE ASM] 0x72758e061c: sub sp, sp, #0x10
+   [LIVE ASM] 0x72758e0620: adrp x8, #0x72758e0000
+   [LIVE ASM] 0x72758e0624: ldrb w10, [x8, #0x61c]
+   [LIVE ASM] 0x72758e0628: ldr w8, [x0, #4]
+   [LIVE ASM] 0x72758e062c: and w9, w10, #0xfc
+   [LIVE ASM] 0x72758e0630: cmp w9, #0x14
+   [LIVE ASM] 0x72758e0634: b.ne #0x72758e0644
+   [LIVE ASM] 0x72758e0644: ldr w9, [x0]
+   [LIVE ASM] 0x72758e0648: and w11, w10, #0x1e
+   [LIVE ASM] 0x72758e064c: cmp w11, #0x10
+   [LIVE ASM] 0x72758e0650: b.ne #0x72758e066c
+   [LIVE ASM] 0x72758e066c: and w10, w10, #0xfe
+   [LIVE ASM] 0x72758e0670: cmp w10, #0x50
+   [LIVE ASM] 0x72758e0674: b.ne #0x72758e069c
+   [LIVE ASM] 0x72758e069c: cbz x2, #0x72758e0740
+   [LIVE ASM] 0x72758e06a0: adrp x12, #0x7275909000
+   [LIVE ASM] 0x72758e06a4: mov x10, xzr
+   [LIVE ASM] 0x72758e06a8: add x11, x0, #8
+   [LIVE ASM] 0x72758e06ac: add x13, sp, #8
+   [LIVE ASM] 0x72758e06b0: mov x14, x1
+   [LIVE ASM] 0x72758e06b4: ldr x12, [x12, #0x2f8]
+   [LIVE ASM] 0x72758e06b8: b #0x72758e06d8
+   [LIVE ASM] 0x72758e06d8: ands x15, x10, #7
+   [LIVE ASM] 0x72758e06dc: b.ne #0x72758e06bc
+   [LIVE ASM] 0x72758e06e0: mov x16, xzr
+   [LIVE ASM] 0x72758e06e4: ror w8, w8, #8
+   [LIVE ASM] 0x72758e06e8: ldr w17, [x12, x16]
+   [LIVE ASM] 0x72758e06ec: add x16, x16, #4
+   [LIVE ASM] 0x72758e06f0: cmp x16, #0x6c
+   [LIVE ASM] 0x72758e06f4: add w8, w8, w9
+   [LIVE ASM] 0x72758e06f8: eor w8, w17, w8
+   [LIVE ASM] 0x72758e06fc: eor w9, w8, w9, ror #29
+   [LIVE ASM] 0x72758e0700: b.ne #0x72758e06e4
+   [LIVE ASM] 0x72758e06e4: ror w8, w8, #8
+   [LIVE ASM] 0x72758e06e8: ldr w17, [x12, x16]
+   [LIVE ASM] 0x72758e06ec: add x16, x16, #4
+   [LIVE ASM] 0x72758e06f0: cmp x16, #0x6c
+   [LIVE ASM] 0x72758e06f4: add w8, w8, w9
+   [LIVE ASM] 0x72758e06f8: eor w8, w17, w8
+   [LIVE ASM] 0x72758e06fc: eor w9, w8, w9, ror #29
+   [LIVE ASM] 0x72758e0700: b.ne #0x72758e06e4
+   [LIVE ASM] 0x72758e0704: lsr w16, w9, #8
+   [LIVE ASM] 0x72758e0708: lsr w17, w9, #0x10
+   [LIVE ASM] 0x72758e070c: lsr w0, w9, #0x18
+   [LIVE ASM] 0x72758e0710: strb w9, [sp, #8]
+   [LIVE ASM] 0x72758e0714: strb w8, [sp, #0xc]
+   [LIVE ASM] 0x72758e0718: strb w16, [sp, #9]
+   [LIVE ASM] 0x72758e071c: lsr w16, w8, #8
+   [LIVE ASM] 0x72758e0720: strb w17, [sp, #0xa]
+   [LIVE ASM] 0x72758e0724: lsr w17, w8, #0x10
+   [LIVE ASM] 0x72758e0728: strb w0, [sp, #0xb]
+   [LIVE ASM] 0x72758e072c: lsr w0, w8, #0x18
+   [LIVE ASM] 0x72758e0730: strb w16, [sp, #0xd]
+   [LIVE ASM] 0x72758e0734: strb w17, [sp, #0xe]
+   [LIVE ASM] 0x72758e0738: strb w0, [sp, #0xf]
+   [LIVE ASM] 0x72758e073c: b #0x72758e06bc
+   [LIVE ASM] 0x72758e06bc: ldrb w15, [x13, x15]
+   [LIVE ASM] 0x72758e06c0: add x10, x10, #1
+   [LIVE ASM] 0x72758e06c4: ldrb w16, [x11], #1
+   [LIVE ASM] 0x72758e06c8: cmp x10, x2
+   [LIVE ASM] 0x72758e06cc: eor w15, w15, w16
+   [LIVE ASM] 0x72758e06d0: strb w15, [x14], #1
+   [LIVE ASM] 0x72758e06d4: b.eq #0x72758e0740
+   [LIVE ASM] 0x72758e0740: mov x0, x1
+   [LIVE ASM] 0x72758e0744: add sp, sp, #0x10
+   [LIVE ASM] 0x72758e0748: ret
+   [LIVE ASM] 0x72758af610: mov x23, x0
+   [LIVE ASM] 0x72758af614: bl #0x72758f02f4
+   [LIVE ASM] 0x72758af618: adrp x8, #0x7275906000
+   [LIVE ASM] 0x72758af61c: mov x24, x0
+   [LIVE ASM] 0x72758af620: ldr x0, [x8, #0xc50]
+   [LIVE ASM] 0x72758af624: bl #0x72758f02f4
+   [LIVE ASM] 0x72758af628: add x8, x28, x0
+   [LIVE ASM] 0x72758af62c: mov x27, x0
+   [LIVE ASM] 0x72758af630: add x9, x8, #0x40f
+   [LIVE ASM] 0x72758af634: add x26, x8, #0x400
+   [LIVE ASM] 0x72758af638: and x8, x9, #0xfffffffffffffff0
+   [LIVE ASM] 0x72758af63c: mov x9, sp
+   [LIVE ASM] 0x72758af640: sub x22, x9, x8
+   [LIVE ASM] 0x72758af644: mov sp, x22
+   [LIVE ASM] 0x72758af648: mov x0, x22
+   [LIVE ASM] 0x72758af64c: mov w1, wzr
+   [LIVE ASM] 0x72758af650: mov x2, x26
+   [LIVE ASM] 0x72758af654: bl #0x72758ac380
+   [LIVE ASM] 0x72758ac380: bti c
+   [LIVE ASM] 0x72758ac384: dup v0.16b, w1
+   [LIVE ASM] 0x72758ac388: cmp x2, #0x10
+   [LIVE ASM] 0x72758ac38c: b.lo #0x72758ac3c0
+   [LIVE ASM] 0x72758ac390: add x4, x0, x2
+   [LIVE ASM] 0x72758ac394: cmp x2, #0x40
+   [LIVE ASM] 0x72758ac398: b.hs #0x72758ac400
+   [LIVE ASM] 0x72758ac400: and x3, x0, #0xfffffffffffffff0
+   [LIVE ASM] 0x72758ac404: cmp x2, #0x80
+   [LIVE ASM] 0x72758ac408: b.hi #0x72758ac420
+   [LIVE ASM] 0x72758ac420: str q0, [x0]
+   [LIVE ASM] 0x72758ac424: str q0, [x3, #0x10]
+   [LIVE ASM] 0x72758ac428: tst w1, #0xff
+   [LIVE ASM] 0x72758ac42c: b.ne #0x72758ac478
+   [LIVE ASM] 0x72758ac430: mrs x5, dczid_el0
+   [LIVE ASM] 0x72758ac434: and x5, x5, #0x1f
+   [LIVE ASM] 0x72758ac438: cmp x5, #4
+   [LIVE ASM] 0x72758ac43c: b.ne #0x72758ac478
+   [LIVE ASM] 0x72758ac440: stp q0, q0, [x3, #0x20]
+   [LIVE ASM] 0x72758ac444: and x3, x0, #0xffffffffffffffc0
+   [LIVE ASM] 0x72758ac448: sub x2, x4, x3
+   [LIVE ASM] 0x72758ac44c: sub x2, x2, #0x80
+   [LIVE ASM] 0x72758ac450: stp q0, q0, [x4, #-0x40]
+   [LIVE ASM] 0x72758ac454: stp q0, q0, [x4, #-0x20]
+   [LIVE ASM] 0x72758ac458: nop
+   [LIVE ASM] 0x72758ac45c: nop
+   [LIVE ASM] 0x72758ac460: add x3, x3, #0x40
+   [LIVE ASM] 0x72758ac464: dc zva, x3
+   [LIVE ASM] 0x72758ac468: subs x2, x2, #0x40
+   [LIVE ASM] 0x72758ac46c: b.hi #0x72758ac460
+   [LIVE ASM] 0x72758ac460: add x3, x3, #0x40
+   [LIVE ASM] 0x72758ac464: dc zva, x3
+   [LIVE ASM] 0x72758ac468: subs x2, x2, #0x40
+   [LIVE ASM] 0x72758ac46c: b.hi #0x72758ac460
+   [LIVE ASM] 0x72758ac470: ret
+   [LIVE ASM] 0x72758af658: sub x1, sp, #0x10
+   [LIVE ASM] 0x72758af65c: mov sp, x1
+   [LIVE ASM] 0x72758af660: adrp x0, #0x727587d000
+   [LIVE ASM] 0x72758af664: add x0, x0, #0xeca
+   [LIVE ASM] 0x72758af668: mov w2, #9
+   [LIVE ASM] 0x72758af66c: bl #0x72758e061c
+   [LIVE ASM] 0x72758af670: mov x1, x0
+   [LIVE ASM] 0x72758af674: mov x0, x22
+   [LIVE ASM] 0x72758af678: mov x2, x26
+   [LIVE ASM] 0x72758af67c: bl #0x72758a8418
+   [LIVE ASM] 0x72758a8418: stp x30, x19, [sp, #-0x10]!
+   [LIVE ASM] 0x72758a841c: mov x8, x0
+   [LIVE ASM] 0x72758a8420: cbz x2, #0x72758a8448
+   [LIVE ASM] 0x72758a8424: add x9, x0, x2
+   [LIVE ASM] 0x72758a8428: mov x10, x2
+   [LIVE ASM] 0x72758a842c: mov x8, x0
+   [LIVE ASM] 0x72758a8430: ldrb w11, [x8]
+   [LIVE ASM] 0x72758a8434: cbz w11, #0x72758a8448
+   [LIVE ASM] 0x72758a8448: sub x19, x8, x0
+   [LIVE ASM] 0x72758a844c: cmp x19, x2
+   [LIVE ASM] 0x72758a8450: b.ne #0x72758a8468
+   [LIVE ASM] 0x72758a8468: ldrb w11, [x1]
+   [LIVE ASM] 0x72758a846c: cbz w11, #0x72758a8498
+   [LIVE ASM] 0x72758a8470: mvn x9, x19
+   [LIVE ASM] 0x72758a8474: add x10, x9, x2
+   [LIVE ASM] 0x72758a8478: mov x9, x1
+   [LIVE ASM] 0x72758a847c: b #0x72758a8488
+   [LIVE ASM] 0x72758a8488: cbz x10, #0x72758a8480
+   [LIVE ASM] 0x72758a848c: sub x10, x10, #1
+   [LIVE ASM] 0x72758a8490: strb w11, [x8], #1
+   [LIVE ASM] 0x72758a8494: b #0x72758a8480
+   [LIVE ASM] 0x72758a8480: ldrb w11, [x9, #1]!
+   [LIVE ASM] 0x72758a8484: cbz w11, #0x72758a849c
+   [LIVE ASM] 0x72758a849c: sub x0, x9, x1
+   [LIVE ASM] 0x72758a84a0: strb wzr, [x8]
+   [LIVE ASM] 0x72758a84a4: add x0, x0, x19
+   [LIVE ASM] 0x72758a84a8: ldp x30, x19, [sp], #0x10
+   [LIVE ASM] 0x72758a84ac: ret
+   [LIVE ASM] 0x72758af680: mov x0, x22
+   [LIVE ASM] 0x72758af684: mov x1, x21
+   [LIVE ASM] 0x72758af688: mov x2, x26
+   [LIVE ASM] 0x72758af68c: bl #0x72758a8418
+   [LIVE ASM] 0x72758a8438: subs x10, x10, #1
+   [LIVE ASM] 0x72758a843c: add x8, x8, #1
+   [LIVE ASM] 0x72758a8440: b.ne #0x72758a8430
+   [LIVE ASM] 0x72758a8430: ldrb w11, [x8]
+   [LIVE ASM] 0x72758a8434: cbz w11, #0x72758a8448
+   [LIVE ASM] 0x72758af690: cbz x28, #0x72758af6cc
+   [LIVE ASM] 0x72758af694: sub x1, sp, #0x10
+   [LIVE ASM] 0x72758af698: mov sp, x1
+   [LIVE ASM] 0x72758af69c: adrp x0, #0x727587a000
+   [LIVE ASM] 0x72758af6a0: add x0, x0, #0x8df
+   [LIVE ASM] 0x72758af6a4: mov w2, #0xc
+   [LIVE ASM] 0x72758af6a8: bl #0x72758e061c
+   [LIVE ASM] 0x72758af6ac: mov x1, x0
+   [LIVE ASM] 0x72758af6b0: mov x0, x22
+   [LIVE ASM] 0x72758af6b4: mov x2, x26
+   [LIVE ASM] 0x72758af6b8: bl #0x72758a8418
+   [LIVE ASM] 0x72758af6bc: mov x0, x22
+   [LIVE ASM] 0x72758af6c0: mov x1, x25
+   [LIVE ASM] 0x72758af6c4: mov x2, x26
+   [LIVE ASM] 0x72758af6c8: bl #0x72758a8418
+   [LIVE ASM] 0x72758af6cc: adrp x28, #0x7275906000
+   [LIVE ASM] 0x72758af6d0: ldr x1, [x28, #0xc60]
+   [LIVE ASM] 0x72758af6d4: cbz x1, #0x72758af740
+   [LIVE ASM] 0x72758af6d8: ldr x8, [x19]
+   [LIVE ASM] 0x72758af6dc: mov x0, x19
+   [LIVE ASM] 0x72758af6e0: mov x2, xzr
+   [LIVE ASM] 0x72758af6e4: ldr x8, [x8, #0x548]
+   [LIVE ASM] 0x72758af6e8: blr x8
+   [LIVE ASM] 0x72758af6ec: sub x1, sp, #0x10
+   [LIVE ASM] 0x72758af6f0: mov x25, x0
+   [LIVE ASM] 0x72758af6f4: mov sp, x1
+   [LIVE ASM] 0x72758af6f8: adrp x0, #0x727587d000
+   [LIVE ASM] 0x72758af6fc: add x0, x0, #0xd36
+   [LIVE ASM] 0x72758af700: mov w2, #0xa
+   [LIVE ASM] 0x72758af704: bl #0x72758e061c
+   [LIVE ASM] 0x72758af708: mov x1, x0
+   [LIVE ASM] 0x72758af70c: mov x0, x22
+   [LIVE ASM] 0x72758af710: mov x2, x26
+   [LIVE ASM] 0x72758af714: bl #0x72758a8418
+   [LIVE ASM] 0x72758af718: mov x0, x22
+   [LIVE ASM] 0x72758af71c: mov x1, x25
+   [LIVE ASM] 0x72758af720: mov x2, x26
+   [LIVE ASM] 0x72758af724: bl #0x72758a8418
+   [LIVE ASM] 0x72758af728: ldr x8, [x19]
+   [LIVE ASM] 0x72758af72c: mov x0, x19
+   [LIVE ASM] 0x72758af730: ldr x1, [x28, #0xc60]
+   [LIVE ASM] 0x72758af734: mov x2, x25
+   [LIVE ASM] 0x72758af738: ldr x8, [x8, #0x550]
+   [LIVE ASM] 0x72758af73c: blr x8
+   [LIVE ASM] 0x72758af740: sub x1, sp, #0x10
+   [LIVE ASM] 0x72758af744: mov sp, x1
+   [LIVE ASM] 0x72758af748: cbz x27, #0x72758af798
+   [LIVE ASM] 0x72758af74c: adrp x0, #0x727587c000
+   [LIVE ASM] 0x72758af750: add x0, x0, #0x7a3
+   [LIVE ASM] 0x72758af754: mov w2, #3
+   [LIVE ASM] 0x72758af758: bl #0x72758e061c
+   [LIVE ASM] 0x72758af75c: mov x1, x0
+   [LIVE ASM] 0x72758af760: mov x0, x22
+   [LIVE ASM] 0x72758af764: mov x2, x26
+   [LIVE ASM] 0x72758af768: bl #0x72758a8418
+   [LIVE ASM] 0x72758af76c: adrp x8, #0x7275906000
+   [LIVE ASM] 0x72758af770: mov x0, x22
+   [LIVE ASM] 0x72758af774: mov x2, x26
+   [LIVE ASM] 0x72758af778: ldr x1, [x8, #0xc50]
+   [LIVE ASM] 0x72758af77c: bl #0x72758a8418
+   [LIVE ASM] 0x72758af780: sub x1, sp, #0x10
+   [LIVE ASM] 0x72758af784: mov sp, x1
+   [LIVE ASM] 0x72758af788: adrp x0, #0x7275879000
+   [LIVE ASM] 0x72758af78c: add x0, x0, #0x6dc
+   [LIVE ASM] 0x72758af790: mov w2, #2
+   [LIVE ASM] 0x72758af794: b #0x72758af7a4
+   [LIVE ASM] 0x72758af7a4: bl #0x72758e061c
+   [LIVE ASM] 0x72758af7a8: mov x1, x0
+   [LIVE ASM] 0x72758af7ac: mov x0, x22
+   [LIVE ASM] 0x72758af7b0: mov x2, x26
+   [LIVE ASM] 0x72758af7b4: bl #0x72758a8418
+   [LIVE ASM] 0x72758af7b8: mov x0, x22
+   [LIVE ASM] 0x72758af7bc: bl #0x72758f02f4
+   [LIVE ASM] 0x72758af7c0: ldr x8, [x19]
+   [LIVE ASM] 0x72758af7c4: mov x25, x0
+   [LIVE ASM] 0x72758af7c8: mov x0, x19
+   [LIVE ASM] 0x72758af7cc: mov x1, x20
+   [LIVE ASM] 0x72758af7d0: mov x2, x21
+   [LIVE ASM] 0x72758af7d4: ldr x8, [x8, #0x550]
+   [LIVE ASM] 0x72758af7d8: blr x8
+   [LIVE ASM] 0x72758af7dc: ldr x8, [x19]
+   [LIVE ASM] 0x72758af7e0: mov x0, x19
+   [LIVE ASM] 0x72758af7e4: mov x1, x20
+   [LIVE ASM] 0x72758af7e8: ldr x8, [x8, #0xb8]
+   [LIVE ASM] 0x72758af7ec: blr x8
+   [LIVE ASM] 0x72758af7f0: add x8, x24, x25
+   [LIVE ASM] 0x72758af7f4: mov x9, #-0x5555555555555556
+   [LIVE ASM] 0x72758af7f8: add x8, x8, #0x20
+   [LIVE ASM] 0x72758af7fc: movk x9, #0xaaab
+   [LIVE ASM] 0x72758af800: umulh x8, x8, x9
+   [LIVE ASM] 0x72758af804: lsl x8, x8, #1
+   [LIVE ASM] 0x72758af808: and x8, x8, #0xfffffffffffffffc
+   [LIVE ASM] 0x72758af80c: add x9, x8, #0x16
+   [LIVE ASM] 0x72758af810: add x1, x8, #7
+   [LIVE ASM] 0x72758af814: and x8, x9, #0xfffffffffffffff0
+   [LIVE ASM] 0x72758af818: mov x9, sp
+   [LIVE ASM] 0x72758af81c: sub x20, x9, x8
+   [LIVE ASM] 0x72758af820: mov sp, x20
+   [LIVE ASM] 0x72758af824: sub x2, x29, #8
+   [LIVE ASM] 0x72758af828: mov x0, x20
+   [LIVE ASM] 0x72758af82c: mov x3, x23
+   [LIVE ASM] 0x72758af830: mov x4, x24
+   [LIVE ASM] 0x72758af834: add x26, x20, x1
+   [LIVE ASM] 0x72758af838: bl #0x72758ed668
+   [LIVE ASM] 0x72758ed668: str x27, [sp, #-0x50]!
+   [LIVE ASM] 0x72758ed66c: stp x26, x25, [sp, #0x10]
+   [LIVE ASM] 0x72758ed670: stp x24, x23, [sp, #0x20]
+   [LIVE ASM] 0x72758ed674: stp x22, x21, [sp, #0x30]
+   [LIVE ASM] 0x72758ed678: stp x20, x19, [sp, #0x40]
+   [LIVE ASM] 0x72758ed67c: cbz x4, #0x72758ed6c8
+   [LIVE ASM] 0x72758ed680: mov x8, #-0x5555555555555556
+   [LIVE ASM] 0x72758ed684: movk x8, #0xaaab
+   [LIVE ASM] 0x72758ed688: umulh x8, x4, x8
+   [LIVE ASM] 0x72758ed68c: lsr x8, x8, #1
+   [LIVE ASM] 0x72758ed690: add x9, x8, x8, lsl #1
+   [LIVE ASM] 0x72758ed694: cmp x4, x9
+   [LIVE ASM] 0x72758ed698: cinc x9, x8, ne
+   [LIVE ASM] 0x72758ed69c: lsr x10, x9, #0x3e
+   [LIVE ASM] 0x72758ed6a0: cbz x10, #0x72758ed6e8
+   [LIVE ASM] 0x72758ed6e8: mov w10, #1
+   [LIVE ASM] 0x72758ed6ec: orr x9, x10, x9, lsl #2
+   [LIVE ASM] 0x72758ed6f0: cbz x0, #0x72758ed718
+   [LIVE ASM] 0x72758ed6f4: cmp x9, x1
+   [LIVE ASM] 0x72758ed6f8: b.hi #0x72758ed718
+   [LIVE ASM] 0x72758ed6fc: cmp x4, #3
+   [LIVE ASM] 0x72758ed700: b.hs #0x72758ed738
+   [LIVE ASM] 0x72758ed738: mov x9, xzr
+   [LIVE ASM] 0x72758ed73c: add x10, x8, x8, lsl #1
+   [LIVE ASM] 0x72758ed740: mov w11, #0x19
+   [LIVE ASM] 0x72758ed744: mov w12, #0xffe6
+   [LIVE ASM] 0x72758ed748: mov w13, #0x33
+   [LIVE ASM] 0x72758ed74c: mov w14, #0xffcc
+   [LIVE ASM] 0x72758ed750: mov w15, #0x3d
+   [LIVE ASM] 0x72758ed754: mov w16, #0xffc2
+   [LIVE ASM] 0x72758ed758: mov w17, #0x3e
+   [LIVE ASM] 0x72758ed75c: mov w1, #0xffc1
+   [LIVE ASM] 0x72758ed760: mov w5, #0x3f
+   [LIVE ASM] 0x72758ed764: mov x8, x0
+   [LIVE ASM] 0x72758ed768: add x7, x3, x9
+   [LIVE ASM] 0x72758ed76c: add x9, x9, #3
+   [LIVE ASM] 0x72758ed770: cmp x9, x10
+   [LIVE ASM] 0x72758ed774: ldrb w20, [x7]
+   [LIVE ASM] 0x72758ed778: ldrb w19, [x7, #1]
+   [LIVE ASM] 0x72758ed77c: ldrb w7, [x7, #2]
+   [LIVE ASM] 0x72758ed780: lsr x6, x20, #2
+   [LIVE ASM] 0x72758ed784: mov x24, x6
+   [LIVE ASM] 0x72758ed788: add w21, w6, #0x41
+   [LIVE ASM] 0x72758ed78c: mov x25, x6
+   [LIVE ASM] 0x72758ed790: add w22, w6, #0x47
+   [LIVE ASM] 0x72758ed794: mov x26, x6
+   [LIVE ASM] 0x72758ed798: sub w24, w11, w24, uxtb
+   [LIVE ASM] 0x72758ed79c: sub w23, w6, #4
+   [LIVE ASM] 0x72758ed7a0: and w25, w25, #0xff
+   [LIVE ASM] 0x72758ed7a4: and x23, x23, #0xff
+   [LIVE ASM] 0x72758ed7a8: mov x27, x6
+   [LIVE ASM] 0x72758ed7ac: bic w21, w21, w24, lsr #8
+   [LIVE ASM] 0x72758ed7b0: add w24, w25, w12
+   [LIVE ASM] 0x72758ed7b4: sub w25, w13, w25
+   [LIVE ASM] 0x72758ed7b8: and w26, w26, #0xff
+   [LIVE ASM] 0x72758ed7bc: orr w24, w24, w25
+   [LIVE ASM] 0x72758ed7c0: add w25, w26, w14
+   [LIVE ASM] 0x72758ed7c4: sub w26, w15, w26
+   [LIVE ASM] 0x72758ed7c8: orr w25, w25, w26
+   [LIVE ASM] 0x72758ed7cc: mov w26, #0x2b
+   [LIVE ASM] 0x72758ed7d0: and w27, w27, #0xff
+   [LIVE ASM] 0x72758ed7d4: bic w22, w22, w24, lsr #8
+   [LIVE ASM] 0x72758ed7d8: add w24, w27, w16
+   [LIVE ASM] 0x72758ed7dc: sub w27, w17, w27
+   [LIVE ASM] 0x72758ed7e0: orr w24, w24, w27
+   [LIVE ASM] 0x72758ed7e4: and w6, w6, #0xff
+   [LIVE ASM] 0x72758ed7e8: orr w22, w22, w21
+   [LIVE ASM] 0x72758ed7ec: add w21, w6, w1
+   [LIVE ASM] 0x72758ed7f0: sub w6, w5, w6
+   [LIVE ASM] 0x72758ed7f4: bic w24, w26, w24, lsr #8
+   [LIVE ASM] 0x72758ed7f8: orr w26, w21, w6
+   [LIVE ASM] 0x72758ed7fc: bic w23, w23, w25, lsr #8
+   [LIVE ASM] 0x72758ed800: mov w25, #0x2f
+   [LIVE ASM] 0x72758ed804: lsr x21, x19, #4
+   [LIVE ASM] 0x72758ed808: mov x6, x8
+   [LIVE ASM] 0x72758ed80c: orr w8, w22, w24
+   [LIVE ASM] 0x72758ed810: bfi x21, x20, #4, #2
+   [LIVE ASM] 0x72758ed814: orr w8, w8, w23
+   [LIVE ASM] 0x72758ed818: bic w20, w25, w26, lsr #8
+   [LIVE ASM] 0x72758ed81c: orr w8, w8, w20
+   [LIVE ASM] 0x72758ed820: mov x20, x21
+   [LIVE ASM] 0x72758ed824: add w22, w21, #0x41
+   [LIVE ASM] 0x72758ed828: mov x23, x21
+   [LIVE ASM] 0x72758ed82c: mov x24, x21
+   [LIVE ASM] 0x72758ed830: strb w8, [x6]
+   [LIVE ASM] 0x72758ed834: sub w8, w11, w20, uxtb
+   [LIVE ASM] 0x72758ed838: add w20, w21, #0x47
+   [LIVE ASM] 0x72758ed83c: bic w8, w22, w8, lsr #8
+   [LIVE ASM] 0x72758ed840: and w22, w23, #0xff
+   [LIVE ASM] 0x72758ed844: add w23, w22, w12
+   [LIVE ASM] 0x72758ed848: sub w22, w13, w22
+   [LIVE ASM] 0x72758ed84c: orr w22, w23, w22
+   [LIVE ASM] 0x72758ed850: sub w23, w21, #4
+   [LIVE ASM] 0x72758ed854: bic w20, w20, w22, lsr #8
+   [LIVE ASM] 0x72758ed858: and x22, x23, #0xff
+   [LIVE ASM] 0x72758ed85c: orr w20, w20, w8
+   [LIVE ASM] 0x72758ed860: mov x8, x21
+   [LIVE ASM] 0x72758ed864: and w23, w24, #0xff
+   [LIVE ASM] 0x72758ed868: and w8, w8, #0xff
+   [LIVE ASM] 0x72758ed86c: add w24, w23, w14
+   [LIVE ASM] 0x72758ed870: sub w23, w15, w23
+   [LIVE ASM] 0x72758ed874: add w25, w8, w16
+   [LIVE ASM] 0x72758ed878: sub w8, w17, w8
+   [LIVE ASM] 0x72758ed87c: orr w23, w24, w23
+   [LIVE ASM] 0x72758ed880: orr w8, w25, w8
+   [LIVE ASM] 0x72758ed884: mov w24, #0x2b
+   [LIVE ASM] 0x72758ed888: bic w22, w22, w23, lsr #8
+   [LIVE ASM] 0x72758ed88c: bic w23, w24, w8, lsr #8
+   [LIVE ASM] 0x72758ed890: and w8, w21, #0xff
+   [LIVE ASM] 0x72758ed894: mov w21, #0x2f
+   [LIVE ASM] 0x72758ed898: add w24, w8, w1
+   [LIVE ASM] 0x72758ed89c: sub w25, w5, w8
+   [LIVE ASM] 0x72758ed8a0: lsr x8, x7, #6
+   [LIVE ASM] 0x72758ed8a4: orr w24, w24, w25
+   [LIVE ASM] 0x72758ed8a8: bfi x8, x19, #2, #4
+   [LIVE ASM] 0x72758ed8ac: orr w19, w20, w23
+   [LIVE ASM] 0x72758ed8b0: orr w19, w19, w22
+   [LIVE ASM] 0x72758ed8b4: bic w20, w21, w24, lsr #8
+   [LIVE ASM] 0x72758ed8b8: add w21, w8, #0x41
+   [LIVE ASM] 0x72758ed8bc: orr w19, w19, w20
+   [LIVE ASM] 0x72758ed8c0: mov x20, x8
+   [LIVE ASM] 0x72758ed8c4: mov x22, x8
+   [LIVE ASM] 0x72758ed8c8: mov x24, x8
+   [LIVE ASM] 0x72758ed8cc: strb w19, [x6, #1]
+   [LIVE ASM] 0x72758ed8d0: and w22, w22, #0xff
+   [LIVE ASM] 0x72758ed8d4: add w19, w8, #0x47
+   [LIVE ASM] 0x72758ed8d8: add w23, w22, w12
+   [LIVE ASM] 0x72758ed8dc: sub w22, w13, w22
+   [LIVE ASM] 0x72758ed8e0: sub w20, w11, w20, uxtb
+   [LIVE ASM] 0x72758ed8e4: orr w22, w23, w22
+   [LIVE ASM] 0x72758ed8e8: sub w23, w8, #4
+   [LIVE ASM] 0x72758ed8ec: and x23, x23, #0xff
+   [LIVE ASM] 0x72758ed8f0: bic w20, w21, w20, lsr #8
+   [LIVE ASM] 0x72758ed8f4: bic w19, w19, w22, lsr #8
+   [LIVE ASM] 0x72758ed8f8: mov x21, x8
+   [LIVE ASM] 0x72758ed8fc: and w22, w24, #0xff
+   [LIVE ASM] 0x72758ed900: add w24, w22, w14
+   [LIVE ASM] 0x72758ed904: sub w22, w15, w22
+   [LIVE ASM] 0x72758ed908: orr w22, w24, w22
+   [LIVE ASM] 0x72758ed90c: mov w24, #0x2b
+   [LIVE ASM] 0x72758ed910: and w21, w21, #0xff
+   [LIVE ASM] 0x72758ed914: add w25, w21, w16
+   [LIVE ASM] 0x72758ed918: sub w21, w17, w21
+   [LIVE ASM] 0x72758ed91c: orr w19, w19, w20
+   [LIVE ASM] 0x72758ed920: orr w20, w25, w21
+   [LIVE ASM] 0x72758ed924: and w8, w8, #0xff
+   [LIVE ASM] 0x72758ed928: bic w21, w23, w22, lsr #8
+   [LIVE ASM] 0x72758ed92c: add w23, w8, w1
+   [LIVE ASM] 0x72758ed930: sub w8, w5, w8
+   [LIVE ASM] 0x72758ed934: bic w20, w24, w20, lsr #8
+   [LIVE ASM] 0x72758ed938: orr w23, w23, w8
+   [LIVE ASM] 0x72758ed93c: mov w22, #0x2f
+   [LIVE ASM] 0x72758ed940: and x8, x7, #0x3f
+   [LIVE ASM] 0x72758ed944: orr w7, w19, w20
+   [LIVE ASM] 0x72758ed948: orr w7, w7, w21
+   [LIVE ASM] 0x72758ed94c: bic w19, w22, w23, lsr #8
+   [LIVE ASM] 0x72758ed950: add w20, w8, #0x41
+   [LIVE ASM] 0x72758ed954: orr w7, w7, w19
+   [LIVE ASM] 0x72758ed958: mov x19, x8
+   [LIVE ASM] 0x72758ed95c: mov x21, x8
+   [LIVE ASM] 0x72758ed960: mov x23, x8
+   [LIVE ASM] 0x72758ed964: strb w7, [x6, #2]
+   [LIVE ASM] 0x72758ed968: sub w7, w11, w19, uxtb
+   [LIVE ASM] 0x72758ed96c: and w19, w21, #0xff
+   [LIVE ASM] 0x72758ed970: add w22, w19, w12
+   [LIVE ASM] 0x72758ed974: sub w19, w13, w19
+   [LIVE ASM] 0x72758ed978: add w21, w8, #0x47
+   [LIVE ASM] 0x72758ed97c: orr w19, w22, w19
+   [LIVE ASM] 0x72758ed980: bic w19, w21, w19, lsr #8
+   [LIVE ASM] 0x72758ed984: and w21, w23, #0xff
+   [LIVE ASM] 0x72758ed988: bic w7, w20, w7, lsr #8
+   [LIVE ASM] 0x72758ed98c: sub w20, w8, #4
+   [LIVE ASM] 0x72758ed990: add w22, w21, w14
+   [LIVE ASM] 0x72758ed994: sub w21, w15, w21
+   [LIVE ASM] 0x72758ed998: and x20, x20, #0xff
+   [LIVE ASM] 0x72758ed99c: orr w21, w22, w21
+   [LIVE ASM] 0x72758ed9a0: mov x23, x8
+   [LIVE ASM] 0x72758ed9a4: mov w22, #0x2b
+   [LIVE ASM] 0x72758ed9a8: orr w7, w19, w7
+   [LIVE ASM] 0x72758ed9ac: bic w19, w20, w21, lsr #8
+   [LIVE ASM] 0x72758ed9b0: and w20, w23, #0xff
+   [LIVE ASM] 0x72758ed9b4: add w21, w20, w16
+   [LIVE ASM] 0x72758ed9b8: sub w20, w17, w20
+   [LIVE ASM] 0x72758ed9bc: orr w20, w21, w20
+   [LIVE ASM] 0x72758ed9c0: and w8, w8, #0xff
+   [LIVE ASM] 0x72758ed9c4: mov w21, #0x2f
+   [LIVE ASM] 0x72758ed9c8: add w23, w8, w1
+   [LIVE ASM] 0x72758ed9cc: sub w8, w5, w8
+   [LIVE ASM] 0x72758ed9d0: bic w20, w22, w20, lsr #8
+   [LIVE ASM] 0x72758ed9d4: orr w8, w23, w8
+   [LIVE ASM] 0x72758ed9d8: orr w7, w7, w20
+   [LIVE ASM] 0x72758ed9dc: orr w7, w7, w19
+   [LIVE ASM] 0x72758ed9e0: bic w8, w21, w8, lsr #8
+   [LIVE ASM] 0x72758ed9e4: orr w7, w7, w8
+   [LIVE ASM] 0x72758ed9e8: add x8, x6, #4
+   [LIVE ASM] 0x72758ed9ec: strb w7, [x6, #3]
+   [LIVE ASM] 0x72758ed9f0: b.lo #0x72758ed768
+   [LIVE ASM] 0x72758ed768: add x7, x3, x9
+   [LIVE ASM] 0x72758ed76c: add x9, x9, #3
+   [LIVE ASM] 0x72758ed770: cmp x9, x10
+   [LIVE ASM] 0x72758ed774: ldrb w20, [x7]
+   [LIVE ASM] 0x72758ed778: ldrb w19, [x7, #1]
+   [LIVE ASM] 0x72758ed77c: ldrb w7, [x7, #2]
+   [LIVE ASM] 0x72758ed780: lsr x6, x20, #2
+   [LIVE ASM] 0x72758ed784: mov x24, x6
+   [LIVE ASM] 0x72758ed788: add w21, w6, #0x41
+   [LIVE ASM] 0x72758ed78c: mov x25, x6
+   [LIVE ASM] 0x72758ed790: add w22, w6, #0x47
+   [LIVE ASM] 0x72758ed794: mov x26, x6
+   [LIVE ASM] 0x72758ed798: sub w24, w11, w24, uxtb
+   [LIVE ASM] 0x72758ed79c: sub w23, w6, #4
+   [LIVE ASM] 0x72758ed7a0: and w25, w25, #0xff
+   [LIVE ASM] 0x72758ed7a4: and x23, x23, #0xff
+   [LIVE ASM] 0x72758ed7a8: mov x27, x6
+   [LIVE ASM] 0x72758ed7ac: bic w21, w21, w24, lsr #8
+   [LIVE ASM] 0x72758ed7b0: add w24, w25, w12
+   [LIVE ASM] 0x72758ed7b4: sub w25, w13, w25
+   [LIVE ASM] 0x72758ed7b8: and w26, w26, #0xff
+   [LIVE ASM] 0x72758ed7bc: orr w24, w24, w25
+   [LIVE ASM] 0x72758ed7c0: add w25, w26, w14
+   [LIVE ASM] 0x72758ed7c4: sub w26, w15, w26
+   [LIVE ASM] 0x72758ed7c8: orr w25, w25, w26
+   [LIVE ASM] 0x72758ed7cc: mov w26, #0x2b
+   [LIVE ASM] 0x72758ed7d0: and w27, w27, #0xff
+   [LIVE ASM] 0x72758ed7d4: bic w22, w22, w24, lsr #8
+   [LIVE ASM] 0x72758ed7d8: add w24, w27, w16
+   [LIVE ASM] 0x72758ed7dc: sub w27, w17, w27
+   [LIVE ASM] 0x72758ed7e0: orr w24, w24, w27
+   [LIVE ASM] 0x72758ed7e4: and w6, w6, #0xff
+   [LIVE ASM] 0x72758ed7e8: orr w22, w22, w21
+   [LIVE ASM] 0x72758ed7ec: add w21, w6, w1
+   [LIVE ASM] 0x72758ed7f0: sub w6, w5, w6
+   [LIVE ASM] 0x72758ed7f4: bic w24, w26, w24, lsr #8
+   [LIVE ASM] 0x72758ed7f8: orr w26, w21, w6
+   [LIVE ASM] 0x72758ed7fc: bic w23, w23, w25, lsr #8
+   [LIVE ASM] 0x72758ed800: mov w25, #0x2f
+   [LIVE ASM] 0x72758ed804: lsr x21, x19, #4
+   [LIVE ASM] 0x72758ed808: mov x6, x8
+   [LIVE ASM] 0x72758ed80c: orr w8, w22, w24
+   [LIVE ASM] 0x72758ed810: bfi x21, x20, #4, #2
+   [LIVE ASM] 0x72758ed814: orr w8, w8, w23
+   [LIVE ASM] 0x72758ed818: bic w20, w25, w26, lsr #8
+   [LIVE ASM] 0x72758ed81c: orr w8, w8, w20
+   [LIVE ASM] 0x72758ed820: mov x20, x21
+   [LIVE ASM] 0x72758ed824: add w22, w21, #0x41
+   [LIVE ASM] 0x72758ed828: mov x23, x21
+   [LIVE ASM] 0x72758ed82c: mov x24, x21
+   [LIVE ASM] 0x72758ed830: strb w8, [x6]
+   [LIVE ASM] 0x72758ed834: sub w8, w11, w20, uxtb
+   [LIVE ASM] 0x72758ed838: add w20, w21, #0x47
+   [LIVE ASM] 0x72758ed83c: bic w8, w22, w8, lsr #8
+   [LIVE ASM] 0x72758ed840: and w22, w23, #0xff
+   [LIVE ASM] 0x72758ed844: add w23, w22, w12
+   [LIVE ASM] 0x72758ed848: sub w22, w13, w22
+   [LIVE ASM] 0x72758ed84c: orr w22, w23, w22
+   [LIVE ASM] 0x72758ed850: sub w23, w21, #4
+   [LIVE ASM] 0x72758ed854: bic w20, w20, w22, lsr #8
+   [LIVE ASM] 0x72758ed858: and x22, x23, #0xff
+   [LIVE ASM] 0x72758ed85c: orr w20, w20, w8
+   [LIVE ASM] 0x72758ed860: mov x8, x21
+   [LIVE ASM] 0x72758ed864: and w23, w24, #0xff
+   [LIVE ASM] 0x72758ed868: and w8, w8, #0xff
+   [LIVE ASM] 0x72758ed86c: add w24, w23, w14
+   [LIVE ASM] 0x72758ed870: sub w23, w15, w23
+   [LIVE ASM] 0x72758ed874: add w25, w8, w16
+   [LIVE ASM] 0x72758ed878: sub w8, w17, w8
+   [LIVE ASM] 0x72758ed87c: orr w23, w24, w23
+   [LIVE ASM] 0x72758ed880: orr w8, w25, w8
+   [LIVE ASM] 0x72758ed884: mov w24, #0x2b
+   [LIVE ASM] 0x72758ed888: bic w22, w22, w23, lsr #8
+   [LIVE ASM] 0x72758ed88c: bic w23, w24, w8, lsr #8
+   [LIVE ASM] 0x72758ed890: and w8, w21, #0xff
+   [LIVE ASM] 0x72758ed894: mov w21, #0x2f
+   [LIVE ASM] 0x72758ed898: add w24, w8, w1
+   [LIVE ASM] 0x72758ed89c: sub w25, w5, w8
+   [LIVE ASM] 0x72758ed8a0: lsr x8, x7, #6
+   [LIVE ASM] 0x72758ed8a4: orr w24, w24, w25
+   [LIVE ASM] 0x72758ed8a8: bfi x8, x19, #2, #4
+   [LIVE ASM] 0x72758ed8ac: orr w19, w20, w23
+   [LIVE ASM] 0x72758ed8b0: orr w19, w19, w22
+   [LIVE ASM] 0x72758ed8b4: bic w20, w21, w24, lsr #8
+   [LIVE ASM] 0x72758ed8b8: add w21, w8, #0x41
+   [LIVE ASM] 0x72758ed8bc: orr w19, w19, w20
+   [LIVE ASM] 0x72758ed8c0: mov x20, x8
+   [LIVE ASM] 0x72758ed8c4: mov x22, x8
+   [LIVE ASM] 0x72758ed8c8: mov x24, x8
+   [LIVE ASM] 0x72758ed8cc: strb w19, [x6, #1]
+   [LIVE ASM] 0x72758ed8d0: and w22, w22, #0xff
+   [LIVE ASM] 0x72758ed8d4: add w19, w8, #0x47
+   [LIVE ASM] 0x72758ed8d8: add w23, w22, w12
+   [LIVE ASM] 0x72758ed8dc: sub w22, w13, w22
+   [LIVE ASM] 0x72758ed8e0: sub w20, w11, w20, uxtb
+   [LIVE ASM] 0x72758ed8e4: orr w22, w23, w22
+   [LIVE ASM] 0x72758ed8e8: sub w23, w8, #4
+   [LIVE ASM] 0x72758ed8ec: and x23, x23, #0xff
+   [LIVE ASM] 0x72758ed8f0: bic w20, w21, w20, lsr #8
+   [LIVE ASM] 0x72758ed8f4: bic w19, w19, w22, lsr #8
+   [LIVE ASM] 0x72758ed8f8: mov x21, x8
+   [LIVE ASM] 0x72758ed8fc: and w22, w24, #0xff
+   [LIVE ASM] 0x72758ed900: add w24, w22, w14
+   [LIVE ASM] 0x72758ed904: sub w22, w15, w22
+   [LIVE ASM] 0x72758ed908: orr w22, w24, w22
+   [LIVE ASM] 0x72758ed90c: mov w24, #0x2b
+   [LIVE ASM] 0x72758ed910: and w21, w21, #0xff
+   [LIVE ASM] 0x72758ed914: add w25, w21, w16
+   [LIVE ASM] 0x72758ed918: sub w21, w17, w21
+   [LIVE ASM] 0x72758ed91c: orr w19, w19, w20
+   [LIVE ASM] 0x72758ed920: orr w20, w25, w21
+   [LIVE ASM] 0x72758ed924: and w8, w8, #0xff
+   [LIVE ASM] 0x72758ed928: bic w21, w23, w22, lsr #8
+   [LIVE ASM] 0x72758ed92c: add w23, w8, w1
+   [LIVE ASM] 0x72758ed930: sub w8, w5, w8
+   [LIVE ASM] 0x72758ed934: bic w20, w24, w20, lsr #8
+   [LIVE ASM] 0x72758ed938: orr w23, w23, w8
+   [LIVE ASM] 0x72758ed93c: mov w22, #0x2f
+   [LIVE ASM] 0x72758ed940: and x8, x7, #0x3f
+   [LIVE ASM] 0x72758ed944: orr w7, w19, w20
+   [LIVE ASM] 0x72758ed948: orr w7, w7, w21
+   [LIVE ASM] 0x72758ed94c: bic w19, w22, w23, lsr #8
+   [LIVE ASM] 0x72758ed950: add w20, w8, #0x41
+   [LIVE ASM] 0x72758ed954: orr w7, w7, w19
+   [LIVE ASM] 0x72758ed958: mov x19, x8
+   [LIVE ASM] 0x72758ed95c: mov x21, x8
+   [LIVE ASM] 0x72758ed960: mov x23, x8
+   [LIVE ASM] 0x72758ed964: strb w7, [x6, #2]
+   [LIVE ASM] 0x72758ed968: sub w7, w11, w19, uxtb
+   [LIVE ASM] 0x72758ed96c: and w19, w21, #0xff
+   [LIVE ASM] 0x72758ed970: add w22, w19, w12
+   [LIVE ASM] 0x72758ed974: sub w19, w13, w19
+   [LIVE ASM] 0x72758ed978: add w21, w8, #0x47
+   [LIVE ASM] 0x72758ed97c: orr w19, w22, w19
+   [LIVE ASM] 0x72758ed980: bic w19, w21, w19, lsr #8
+   [LIVE ASM] 0x72758ed984: and w21, w23, #0xff
+   [LIVE ASM] 0x72758ed988: bic w7, w20, w7, lsr #8
+   [LIVE ASM] 0x72758ed98c: sub w20, w8, #4
+   [LIVE ASM] 0x72758ed990: add w22, w21, w14
+   [LIVE ASM] 0x72758ed994: sub w21, w15, w21
+   [LIVE ASM] 0x72758ed998: and x20, x20, #0xff
+   [LIVE ASM] 0x72758ed99c: orr w21, w22, w21
+   [LIVE ASM] 0x72758ed9a0: mov x23, x8
+   [LIVE ASM] 0x72758ed9a4: mov w22, #0x2b
+   [LIVE ASM] 0x72758ed9a8: orr w7, w19, w7
+   [LIVE ASM] 0x72758ed9ac: bic w19, w20, w21, lsr #8
+   [LIVE ASM] 0x72758ed9b0: and w20, w23, #0xff
+   [LIVE ASM] 0x72758ed9b4: add w21, w20, w16
+   [LIVE ASM] 0x72758ed9b8: sub w20, w17, w20
+   [LIVE ASM] 0x72758ed9bc: orr w20, w21, w20
+   [LIVE ASM] 0x72758ed9c0: and w8, w8, #0xff
+   [LIVE ASM] 0x72758ed9c4: mov w21, #0x2f
+   [LIVE ASM] 0x72758ed9c8: add w23, w8, w1
+   [LIVE ASM] 0x72758ed9cc: sub w8, w5, w8
+   [LIVE ASM] 0x72758ed9d0: bic w20, w22, w20, lsr #8
+   [LIVE ASM] 0x72758ed9d4: orr w8, w23, w8
+   [LIVE ASM] 0x72758ed9d8: orr w7, w7, w20
+   [LIVE ASM] 0x72758ed9dc: orr w7, w7, w19
+   [LIVE ASM] 0x72758ed9e0: bic w8, w21, w8, lsr #8
+   [LIVE ASM] 0x72758ed9e4: orr w7, w7, w8
+   [LIVE ASM] 0x72758ed9e8: add x8, x6, #4
+   [LIVE ASM] 0x72758ed9ec: strb w7, [x6, #3]
+   [LIVE ASM] 0x72758ed9f0: b.lo #0x72758ed768
+   [LIVE ASM] 0x72758ed9f4: add x3, x3, x9
+   [LIVE ASM] 0x72758ed9f8: cmp x9, x4
+   [LIVE ASM] 0x72758ed9fc: b.hs #0x72758edc2c
+   [LIVE ASM] 0x72758edc2c: sub x9, x8, x0
+   [LIVE ASM] 0x72758edc30: mov w0, wzr
+   [LIVE ASM] 0x72758edc34: str x9, [x2]
+   [LIVE ASM] 0x72758edc38: strb wzr, [x8]
+   [LIVE ASM] 0x72758edc3c: ldp x20, x19, [sp, #0x40]
+   [LIVE ASM] 0x72758edc40: ldp x22, x21, [sp, #0x30]
+   [LIVE ASM] 0x72758edc44: ldp x24, x23, [sp, #0x20]
+   [LIVE ASM] 0x72758edc48: ldp x26, x25, [sp, #0x10]
+   [LIVE ASM] 0x72758edc4c: ldr x27, [sp], #0x50
+   [LIVE ASM] 0x72758edc50: ret
+   [LIVE ASM] 0x72758af83c: ldur x8, [x29, #-8]
+   [LIVE ASM] 0x72758af840: cbz x8, #0x72758af89c
+   [LIVE ASM] 0x72758af844: mov w10, #0x5f
+   [LIVE ASM] 0x72758af848: mov w11, #0x2d
+   [LIVE ASM] 0x72758af84c: mov x12, x20
+   [LIVE ASM] 0x72758af850: mov x9, x8
+   [LIVE ASM] 0x72758af854: b #0x72758af870
+   [LIVE ASM] 0x72758af870: ldrb w13, [x12]
+   [LIVE ASM] 0x72758af874: cmp w13, #0x3d
+   [LIVE ASM] 0x72758af878: b.eq #0x72758af858
+   [LIVE ASM] 0x72758af87c: cmp w13, #0x2f
+   [LIVE ASM] 0x72758af880: b.eq #0x72758af894
+   [LIVE ASM] 0x72758af884: cmp w13, #0x2b
+   [LIVE ASM] 0x72758af888: b.ne #0x72758af864
+   [LIVE ASM] 0x72758af864: subs x8, x8, #1
+   [LIVE ASM] 0x72758af868: add x12, x12, #1
+   [LIVE ASM] 0x72758af86c: b.eq #0x72758af8a0
+   [LIVE ASM] 0x72758af8a0: add x21, x20, x9
+   [LIVE ASM] 0x72758af8a4: mov w8, #0x2e
+   [LIVE ASM] 0x72758af8a8: sub x2, x29, #8
+   [LIVE ASM] 0x72758af8ac: mov x3, x22
+   [LIVE ASM] 0x72758af8b0: mov x4, x25
+   [LIVE ASM] 0x72758af8b4: strb w8, [x21], #1
+   [LIVE ASM] 0x72758af8b8: sub x1, x26, x21
+   [LIVE ASM] 0x72758af8bc: mov x0, x21
+   [LIVE ASM] 0x72758af8c0: bl #0x72758ed668
+   [LIVE ASM] 0x72758af8c4: ldur x8, [x29, #-8]
+   [LIVE ASM] 0x72758af8c8: cbz x8, #0x72758af924
+   [LIVE ASM] 0x72758af8cc: mov w9, #0x5f
+   [LIVE ASM] 0x72758af8d0: mov w10, #0x2d
+   [LIVE ASM] 0x72758af8d4: mov x11, x21
+   [LIVE ASM] 0x72758af8d8: mov x23, x8
+   [LIVE ASM] 0x72758af8dc: b #0x72758af8f8
+   [LIVE ASM] 0x72758af8f8: ldrb w12, [x11]
+   [LIVE ASM] 0x72758af8fc: cmp w12, #0x3d
+   [LIVE ASM] 0x72758af900: b.eq #0x72758af8e0
+   [LIVE ASM] 0x72758af904: cmp w12, #0x2f
+   [LIVE ASM] 0x72758af908: b.eq #0x72758af91c
+   [LIVE ASM] 0x72758af90c: cmp w12, #0x2b
+   [LIVE ASM] 0x72758af910: b.ne #0x72758af8ec
+   [LIVE ASM] 0x72758af8ec: subs x8, x8, #1
+   [LIVE ASM] 0x72758af8f0: add x11, x11, #1
+   [LIVE ASM] 0x72758af8f4: b.eq #0x72758af928
+   [LIVE ASM] 0x72758af928: adrp x22, #0x7275906000
+   [LIVE ASM] 0x72758af92c: add x22, x22, #0xc24
+   [LIVE ASM] 0x72758af930: sub x1, x29, #0x28
+   [LIVE ASM] 0x72758af934: mov w2, #0x20
+   [LIVE ASM] 0x72758af938: ldur x0, [x22, #0x34]
+   [LIVE ASM] 0x72758af93c: bl #0x72758c3df0
+   [LIVE ASM] 0x72758c3df0: str d12, [sp, #-0x30]!
+   [LIVE ASM] 0x72758c3df4: stp d11, d10, [sp, #0x10]
+   [LIVE ASM] 0x72758c3df8: stp d9, d8, [sp, #0x20]
+   [LIVE ASM] 0x72758c3dfc: cbz x2, #0x72758c3ef4
+   [LIVE ASM] 0x72758c3e00: lsr x8, x0, #4
+   [LIVE ASM] 0x72758c3e04: mov w9, #0x352d
+   [LIVE ASM] 0x72758c3e08: movk w9, #0x7feb, lsl #16
+   [LIVE ASM] 0x72758c3e0c: cmp x2, #8
+   [LIVE ASM] 0x72758c3e10: eor w10, w8, w8, lsr #16
+   [LIVE ASM] 0x72758c3e14: and x8, x8, #0xfffffff00000000
+   [LIVE ASM] 0x72758c3e18: mul w9, w10, w9
+   [LIVE ASM] 0x72758c3e1c: mov w10, #0xa68b
+   [LIVE ASM] 0x72758c3e20: movk w10, #0x846c, lsl #16
+   [LIVE ASM] 0x72758c3e24: eor w9, w9, w9, lsr #15
+   [LIVE ASM] 0x72758c3e28: mul w9, w9, w10
+   [LIVE ASM] 0x72758c3e2c: mov x10, #0x7c15
+   [LIVE ASM] 0x72758c3e30: movk x10, #0x7f4a, lsl #16
+   [LIVE ASM] 0x72758c3e34: movk x10, #0x79b9, lsl #32
+   [LIVE ASM] 0x72758c3e38: eor w9, w9, w9, lsr #16
+   [LIVE ASM] 0x72758c3e3c: movk x10, #0x9e37, lsl #48
+   [LIVE ASM] 0x72758c3e40: orr x8, x8, x9
+   [LIVE ASM] 0x72758c3e44: nop
+   [LIVE ASM] 0x72758c3e48: adr x9, #0x72758c3a28
+   [LIVE ASM] 0x72758c3e4c: add x9, x8, x9, lsr #2
+   [LIVE ASM] 0x72758c3e50: lsl x8, x8, #4
+   [LIVE ASM] 0x72758c3e54: mul x9, x9, x10
+   [LIVE ASM] 0x72758c3e58: lsr x9, x9, #0x38
+   [LIVE ASM] 0x72758c3e5c: b.lo #0x72758c3e78
+   [LIVE ASM] 0x72758c3e60: sub x10, x1, x2
+   [LIVE ASM] 0x72758c3e64: sub x11, x1, x8
+   [LIVE ASM] 0x72758c3e68: sub x10, x10, x8
+   [LIVE ASM] 0x72758c3e6c: cmp x10, #0x10
+   [LIVE ASM] 0x72758c3e70: ccmp x11, #0x10, #0, hs
+   [LIVE ASM] 0x72758c3e74: b.hs #0x72758c3f04
+   [LIVE ASM] 0x72758c3f04: adrp x12, #0x727587e000
+   [LIVE ASM] 0x72758c3f08: adrp x11, #0x727587e000
+   [LIVE ASM] 0x72758c3f0c: cmp x2, #0x10
+   [LIVE ASM] 0x72758c3f10: b.hs #0x72758c3f1c
+   [LIVE ASM] 0x72758c3f1c: adrp x10, #0x727587e000
+   [LIVE ASM] 0x72758c3f20: adrp x13, #0x727587e000
+   [LIVE ASM] 0x72758c3f24: adrp x14, #0x727587e000
+   [LIVE ASM] 0x72758c3f28: ldr q0, [x12, #0x300]
+   [LIVE ASM] 0x72758c3f2c: movi v4.16b, #1
+   [LIVE ASM] 0x72758c3f30: ldr q1, [x11, #0x5c0]
+   [LIVE ASM] 0x72758c3f34: ldr q2, [x10, #0x170]
+   [LIVE ASM] 0x72758c3f38: and x10, x2, #0xfffffffffffffff0
+   [LIVE ASM] 0x72758c3f3c: movi v6.4s, #0x10
+   [LIVE ASM] 0x72758c3f40: ldr q3, [x13, #0x230]
+   [LIVE ASM] 0x72758c3f44: movi v7.4s, #8
+   [LIVE ASM] 0x72758c3f48: ldr q5, [x14, #0x180]
+   [LIVE ASM] 0x72758c3f4c: movi v16.4s, #2
+   [LIVE ASM] 0x72758c3f50: mov x13, x10
+   [LIVE ASM] 0x72758c3f54: movi v17.16b, #0xaa
+   [LIVE ASM] 0x72758c3f58: mov x14, x1
+   [LIVE ASM] 0x72758c3f5c: movi v18.4s, #1
+   [LIVE ASM] 0x72758c3f60: mov x15, x8
+   [LIVE ASM] 0x72758c3f64: movi v19.16b, #0x55
+   [LIVE ASM] 0x72758c3f68: dup v20.16b, w9
+   [LIVE ASM] 0x72758c3f6c: ldr q23, [x15, x2]
+   [LIVE ASM] 0x72758c3f70: subs x13, x13, #0x10
+   [LIVE ASM] 0x72758c3f74: ldr q26, [x15], #0x10
+   [LIVE ASM] 0x72758c3f78: tbl v21.16b, {v23.16b}, v2.16b
+   [LIVE ASM] 0x72758c3f7c: ushr v25.16b, v23.16b, #6
+   [LIVE ASM] 0x72758c3f80: tbl v22.16b, {v23.16b}, v0.16b
+   [LIVE ASM] 0x72758c3f84: tbl v24.16b, {v23.16b}, v1.16b
+   [LIVE ASM] 0x72758c3f88: tbl v23.16b, {v23.16b}, v3.16b
+   [LIVE ASM] 0x72758c3f8c: shl v30.4s, v21.4s, #0x1a
+   [LIVE ASM] 0x72758c3f90: shl v28.4s, v22.4s, #0x1a
+   [LIVE ASM] 0x72758c3f94: cmlt v12.4s, v30.4s, #0
+   [LIVE ASM] 0x72758c3f98: shl v27.4s, v24.4s, #0x1a
+   [LIVE ASM] 0x72758c3f9c: shl v29.4s, v23.4s, #0x1a
+   [LIVE ASM] 0x72758c3fa0: and v31.16b, v24.16b, v6.16b
+   [LIVE ASM] 0x72758c3fa4: cmlt v11.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c3fa8: cmlt v10.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c3fac: and v8.16b, v22.16b, v6.16b
+   [LIVE ASM] 0x72758c3fb0: cmlt v9.4s, v27.4s, #0
+   [LIVE ASM] 0x72758c3fb4: and v27.16b, v23.16b, v6.16b
+   [LIVE ASM] 0x72758c3fb8: and v29.16b, v21.16b, v6.16b
+   [LIVE ASM] 0x72758c3fbc: cmeq v29.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c3fc0: cmeq v27.4s, v27.4s, #0
+   [LIVE ASM] 0x72758c3fc4: cmeq v30.4s, v8.4s, #0
+   [LIVE ASM] 0x72758c3fc8: cmeq v31.4s, v31.4s, #0
+   [LIVE ASM] 0x72758c3fcc: tbl v28.16b, {v9.16b, v10.16b, v11.16b, v12.16b}, v5.16b
+   [LIVE ASM] 0x72758c3fd0: and v25.16b, v25.16b, v4.16b
+   [LIVE ASM] 0x72758c3fd4: uzp1 v27.8h, v27.8h, v29.8h
+   [LIVE ASM] 0x72758c3fd8: uzp1 v29.8h, v31.8h, v30.8h
+   [LIVE ASM] 0x72758c3fdc: add v25.16b, v25.16b, v26.16b
+   [LIVE ASM] 0x72758c3fe0: shl v30.4s, v23.4s, #0x1d
+   [LIVE ASM] 0x72758c3fe4: add v25.16b, v25.16b, v28.16b
+   [LIVE ASM] 0x72758c3fe8: uzp1 v26.16b, v29.16b, v27.16b
+   [LIVE ASM] 0x72758c3fec: ushr v27.16b, v25.16b, #4
+   [LIVE ASM] 0x72758c3ff0: shl v28.16b, v25.16b, #4
+   [LIVE ASM] 0x72758c3ff4: and v29.16b, v21.16b, v7.16b
+   [LIVE ASM] 0x72758c3ff8: orr v27.16b, v28.16b, v27.16b
+   [LIVE ASM] 0x72758c3ffc: bif v25.16b, v27.16b, v26.16b
+   [LIVE ASM] 0x72758c4000: and v26.16b, v24.16b, v7.16b
+   [LIVE ASM] 0x72758c4004: and v27.16b, v22.16b, v7.16b
+   [LIVE ASM] 0x72758c4008: and v28.16b, v23.16b, v7.16b
+   [LIVE ASM] 0x72758c400c: cmeq v29.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c4010: cmeq v28.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c4014: cmeq v27.4s, v27.4s, #0
+   [LIVE ASM] 0x72758c4018: cmeq v26.4s, v26.4s, #0
+   [LIVE ASM] 0x72758c401c: uzp1 v28.8h, v28.8h, v29.8h
+   [LIVE ASM] 0x72758c4020: uzp1 v26.8h, v26.8h, v27.8h
+   [LIVE ASM] 0x72758c4024: ushr v27.16b, v25.16b, #3
+   [LIVE ASM] 0x72758c4028: shl v29.16b, v25.16b, #5
+   [LIVE ASM] 0x72758c402c: and v31.16b, v22.16b, v16.16b
+   [LIVE ASM] 0x72758c4030: uzp1 v26.16b, v26.16b, v28.16b
+   [LIVE ASM] 0x72758c4034: shl v28.4s, v21.4s, #0x1d
+   [LIVE ASM] 0x72758c4038: orr v27.16b, v29.16b, v27.16b
+   [LIVE ASM] 0x72758c403c: shl v29.4s, v22.4s, #0x1d
+   [LIVE ASM] 0x72758c4040: cmlt v11.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c4044: cmlt v10.4s, v30.4s, #0
+   [LIVE ASM] 0x72758c4048: cmlt v9.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c404c: and v29.16b, v23.16b, v16.16b
+   [LIVE ASM] 0x72758c4050: and v30.16b, v21.16b, v16.16b
+   [LIVE ASM] 0x72758c4054: cmeq v30.4s, v30.4s, #0
+   [LIVE ASM] 0x72758c4058: cmeq v29.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c405c: and v28.16b, v24.16b, v16.16b
+   [LIVE ASM] 0x72758c4060: uzp1 v29.8h, v29.8h, v30.8h
+   [LIVE ASM] 0x72758c4064: cmeq v30.4s, v31.4s, #0
+   [LIVE ASM] 0x72758c4068: cmeq v28.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c406c: shl v31.4s, v24.4s, #0x1d
+   [LIVE ASM] 0x72758c4070: uzp1 v28.8h, v28.8h, v30.8h
+   [LIVE ASM] 0x72758c4074: cmlt v8.4s, v31.4s, #0
+   [LIVE ASM] 0x72758c4078: bif v25.16b, v27.16b, v26.16b
+   [LIVE ASM] 0x72758c407c: tbl v26.16b, {v8.16b, v9.16b, v10.16b, v11.16b}, v5.16b
+   [LIVE ASM] 0x72758c4080: and v24.16b, v24.16b, v18.16b
+   [LIVE ASM] 0x72758c4084: and v22.16b, v22.16b, v18.16b
+   [LIVE ASM] 0x72758c4088: and v23.16b, v23.16b, v18.16b
+   [LIVE ASM] 0x72758c408c: and v21.16b, v21.16b, v18.16b
+   [LIVE ASM] 0x72758c4090: cmeq v21.4s, v21.4s, #0
+   [LIVE ASM] 0x72758c4094: cmeq v23.4s, v23.4s, #0
+   [LIVE ASM] 0x72758c4098: cmeq v22.4s, v22.4s, #0
+   [LIVE ASM] 0x72758c409c: cmeq v24.4s, v24.4s, #0
+   [LIVE ASM] 0x72758c40a0: uzp1 v27.16b, v28.16b, v29.16b
+   [LIVE ASM] 0x72758c40a4: uzp1 v21.8h, v23.8h, v21.8h
+   [LIVE ASM] 0x72758c40a8: uzp1 v22.8h, v24.8h, v22.8h
+   [LIVE ASM] 0x72758c40ac: eor v23.16b, v25.16b, v26.16b
+   [LIVE ASM] 0x72758c40b0: eor v24.16b, v23.16b, v17.16b
+   [LIVE ASM] 0x72758c40b4: bif v23.16b, v24.16b, v27.16b
+   [LIVE ASM] 0x72758c40b8: uzp1 v21.16b, v22.16b, v21.16b
+   [LIVE ASM] 0x72758c40bc: eor v22.16b, v23.16b, v19.16b
+   [LIVE ASM] 0x72758c40c0: bsl v21.16b, v23.16b, v22.16b
+   [LIVE ASM] 0x72758c40c4: eor v21.16b, v21.16b, v20.16b
+   [LIVE ASM] 0x72758c40c8: str q21, [x14], #0x10
+   [LIVE ASM] 0x72758c40cc: b.ne #0x72758c3f6c
+   [LIVE ASM] 0x72758c3f6c: ldr q23, [x15, x2]
+   [LIVE ASM] 0x72758c3f70: subs x13, x13, #0x10
+   [LIVE ASM] 0x72758c3f74: ldr q26, [x15], #0x10
+   [LIVE ASM] 0x72758c3f78: tbl v21.16b, {v23.16b}, v2.16b
+   [LIVE ASM] 0x72758c3f7c: ushr v25.16b, v23.16b, #6
+   [LIVE ASM] 0x72758c3f80: tbl v22.16b, {v23.16b}, v0.16b
+   [LIVE ASM] 0x72758c3f84: tbl v24.16b, {v23.16b}, v1.16b
+   [LIVE ASM] 0x72758c3f88: tbl v23.16b, {v23.16b}, v3.16b
+   [LIVE ASM] 0x72758c3f8c: shl v30.4s, v21.4s, #0x1a
+   [LIVE ASM] 0x72758c3f90: shl v28.4s, v22.4s, #0x1a
+   [LIVE ASM] 0x72758c3f94: cmlt v12.4s, v30.4s, #0
+   [LIVE ASM] 0x72758c3f98: shl v27.4s, v24.4s, #0x1a
+   [LIVE ASM] 0x72758c3f9c: shl v29.4s, v23.4s, #0x1a
+   [LIVE ASM] 0x72758c3fa0: and v31.16b, v24.16b, v6.16b
+   [LIVE ASM] 0x72758c3fa4: cmlt v11.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c3fa8: cmlt v10.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c3fac: and v8.16b, v22.16b, v6.16b
+   [LIVE ASM] 0x72758c3fb0: cmlt v9.4s, v27.4s, #0
+   [LIVE ASM] 0x72758c3fb4: and v27.16b, v23.16b, v6.16b
+   [LIVE ASM] 0x72758c3fb8: and v29.16b, v21.16b, v6.16b
+   [LIVE ASM] 0x72758c3fbc: cmeq v29.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c3fc0: cmeq v27.4s, v27.4s, #0
+   [LIVE ASM] 0x72758c3fc4: cmeq v30.4s, v8.4s, #0
+   [LIVE ASM] 0x72758c3fc8: cmeq v31.4s, v31.4s, #0
+   [LIVE ASM] 0x72758c3fcc: tbl v28.16b, {v9.16b, v10.16b, v11.16b, v12.16b}, v5.16b
+   [LIVE ASM] 0x72758c3fd0: and v25.16b, v25.16b, v4.16b
+   [LIVE ASM] 0x72758c3fd4: uzp1 v27.8h, v27.8h, v29.8h
+   [LIVE ASM] 0x72758c3fd8: uzp1 v29.8h, v31.8h, v30.8h
+   [LIVE ASM] 0x72758c3fdc: add v25.16b, v25.16b, v26.16b
+   [LIVE ASM] 0x72758c3fe0: shl v30.4s, v23.4s, #0x1d
+   [LIVE ASM] 0x72758c3fe4: add v25.16b, v25.16b, v28.16b
+   [LIVE ASM] 0x72758c3fe8: uzp1 v26.16b, v29.16b, v27.16b
+   [LIVE ASM] 0x72758c3fec: ushr v27.16b, v25.16b, #4
+   [LIVE ASM] 0x72758c3ff0: shl v28.16b, v25.16b, #4
+   [LIVE ASM] 0x72758c3ff4: and v29.16b, v21.16b, v7.16b
+   [LIVE ASM] 0x72758c3ff8: orr v27.16b, v28.16b, v27.16b
+   [LIVE ASM] 0x72758c3ffc: bif v25.16b, v27.16b, v26.16b
+   [LIVE ASM] 0x72758c4000: and v26.16b, v24.16b, v7.16b
+   [LIVE ASM] 0x72758c4004: and v27.16b, v22.16b, v7.16b
+   [LIVE ASM] 0x72758c4008: and v28.16b, v23.16b, v7.16b
+   [LIVE ASM] 0x72758c400c: cmeq v29.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c4010: cmeq v28.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c4014: cmeq v27.4s, v27.4s, #0
+   [LIVE ASM] 0x72758c4018: cmeq v26.4s, v26.4s, #0
+   [LIVE ASM] 0x72758c401c: uzp1 v28.8h, v28.8h, v29.8h
+   [LIVE ASM] 0x72758c4020: uzp1 v26.8h, v26.8h, v27.8h
+   [LIVE ASM] 0x72758c4024: ushr v27.16b, v25.16b, #3
+   [LIVE ASM] 0x72758c4028: shl v29.16b, v25.16b, #5
+   [LIVE ASM] 0x72758c402c: and v31.16b, v22.16b, v16.16b
+   [LIVE ASM] 0x72758c4030: uzp1 v26.16b, v26.16b, v28.16b
+   [LIVE ASM] 0x72758c4034: shl v28.4s, v21.4s, #0x1d
+   [LIVE ASM] 0x72758c4038: orr v27.16b, v29.16b, v27.16b
+   [LIVE ASM] 0x72758c403c: shl v29.4s, v22.4s, #0x1d
+   [LIVE ASM] 0x72758c4040: cmlt v11.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c4044: cmlt v10.4s, v30.4s, #0
+   [LIVE ASM] 0x72758c4048: cmlt v9.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c404c: and v29.16b, v23.16b, v16.16b
+   [LIVE ASM] 0x72758c4050: and v30.16b, v21.16b, v16.16b
+   [LIVE ASM] 0x72758c4054: cmeq v30.4s, v30.4s, #0
+   [LIVE ASM] 0x72758c4058: cmeq v29.4s, v29.4s, #0
+   [LIVE ASM] 0x72758c405c: and v28.16b, v24.16b, v16.16b
+   [LIVE ASM] 0x72758c4060: uzp1 v29.8h, v29.8h, v30.8h
+   [LIVE ASM] 0x72758c4064: cmeq v30.4s, v31.4s, #0
+   [LIVE ASM] 0x72758c4068: cmeq v28.4s, v28.4s, #0
+   [LIVE ASM] 0x72758c406c: shl v31.4s, v24.4s, #0x1d
+   [LIVE ASM] 0x72758c4070: uzp1 v28.8h, v28.8h, v30.8h
+   [LIVE ASM] 0x72758c4074: cmlt v8.4s, v31.4s, #0
+   [LIVE ASM] 0x72758c4078: bif v25.16b, v27.16b, v26.16b
+   [LIVE ASM] 0x72758c407c: tbl v26.16b, {v8.16b, v9.16b, v10.16b, v11.16b}, v5.16b
+   [LIVE ASM] 0x72758c4080: and v24.16b, v24.16b, v18.16b
+   [LIVE ASM] 0x72758c4084: and v22.16b, v22.16b, v18.16b
+   [LIVE ASM] 0x72758c4088: and v23.16b, v23.16b, v18.16b
+   [LIVE ASM] 0x72758c408c: and v21.16b, v21.16b, v18.16b
+   [LIVE ASM] 0x72758c4090: cmeq v21.4s, v21.4s, #0
+   [LIVE ASM] 0x72758c4094: cmeq v23.4s, v23.4s, #0
+   [LIVE ASM] 0x72758c4098: cmeq v22.4s, v22.4s, #0
+   [LIVE ASM] 0x72758c409c: cmeq v24.4s, v24.4s, #0
+   [LIVE ASM] 0x72758c40a0: uzp1 v27.16b, v28.16b, v29.16b
+   [LIVE ASM] 0x72758c40a4: uzp1 v21.8h, v23.8h, v21.8h
+   [LIVE ASM] 0x72758c40a8: uzp1 v22.8h, v24.8h, v22.8h
+   [LIVE ASM] 0x72758c40ac: eor v23.16b, v25.16b, v26.16b
+   [LIVE ASM] 0x72758c40b0: eor v24.16b, v23.16b, v17.16b
+   [LIVE ASM] 0x72758c40b4: bif v23.16b, v24.16b, v27.16b
+   [LIVE ASM] 0x72758c40b8: uzp1 v21.16b, v22.16b, v21.16b
+   [LIVE ASM] 0x72758c40bc: eor v22.16b, v23.16b, v19.16b
+   [LIVE ASM] 0x72758c40c0: bsl v21.16b, v23.16b, v22.16b
+   [LIVE ASM] 0x72758c40c4: eor v21.16b, v21.16b, v20.16b
+   [LIVE ASM] 0x72758c40c8: str q21, [x14], #0x10
+   [LIVE ASM] 0x72758c40cc: b.ne #0x72758c3f6c
+   [LIVE ASM] 0x72758c40d0: cmp x10, x2
+   [LIVE ASM] 0x72758c40d4: b.eq #0x72758c3ef4
+   [LIVE ASM] 0x72758c3ef4: ldp d9, d8, [sp, #0x20]
+   [LIVE ASM] 0x72758c3ef8: ldp d11, d10, [sp, #0x10]
+   [LIVE ASM] 0x72758c3efc: ldr d12, [sp], #0x30
+   [LIVE ASM] 0x72758c3f00: ret
+   [LIVE ASM] 0x72758af940: ldur x1, [x22, #0x24]
+   [LIVE ASM] 0x72758af944: sub x0, x29, #0x28
+   [LIVE ASM] 0x72758af948: ldrb w2, [x22]
+   [LIVE ASM] 0x72758af94c: sub x3, x29, #0x68
+   [LIVE ASM] 0x72758af950: mov w4, #0x40
+   [LIVE ASM] 0x72758af954: bl #0x72758b4034
+   [LIVE ASM] 0x72758b4034: sub sp, sp, #0x80
+   [LIVE ASM] 0x72758b4038: stp x30, x23, [sp, #0x50]
+   [LIVE ASM] 0x72758b403c: stp x22, x21, [sp, #0x60]
+   [LIVE ASM] 0x72758b4040: stp x20, x19, [sp, #0x70]
+   [LIVE ASM] 0x72758b4044: mov x23, x0
+   [LIVE ASM] 0x72758b4048: add x0, sp, #8
+   [LIVE ASM] 0x72758b404c: mov x19, x4
+   [LIVE ASM] 0x72758b4050: mov x20, x3
+   [LIVE ASM] 0x72758b4054: mov x21, x2
+   [LIVE ASM] 0x72758b4058: mov x22, x1
+   [LIVE ASM] 0x72758b405c: str xzr, [sp]
+   [LIVE ASM] 0x72758b4060: bl #0x72758e0b20
+   [LIVE ASM] 0x72758e0b20: movi v0.2d, #0000000000000000
+   [LIVE ASM] 0x72758e0b24: str xzr, [x0, #0x40]
+   [LIVE ASM] 0x72758e0b28: stp q0, q0, [x0]
+   [LIVE ASM] 0x72758e0b2c: stp q0, q0, [x0, #0x20]
+   [LIVE ASM] 0x72758e0b30: ret
+   [LIVE ASM] 0x72758b4064: add x0, sp, #8
+   [LIVE ASM] 0x72758b4068: mov w1, #2
+   [LIVE ASM] 0x72758b406c: mov x2, x23
+   [LIVE ASM] 0x72758b4070: mov w3, #0x100
+   [LIVE ASM] 0x72758b4074: mov w4, wzr
+   [LIVE ASM] 0x72758b4078: bl #0x72758e0b34
+   [LIVE ASM] 0x72758e0b34: str x30, [sp, #-0x40]!
+   [LIVE ASM] 0x72758e0b38: stp x24, x23, [sp, #0x10]
+   [LIVE ASM] 0x72758e0b3c: stp x22, x21, [sp, #0x20]
+   [LIVE ASM] 0x72758e0b40: stp x20, x19, [sp, #0x30]
+   [LIVE ASM] 0x72758e0b44: mov x20, x2
+   [LIVE ASM] 0x72758e0b48: mov w24, w1
+   [LIVE ASM] 0x72758e0b4c: mov x22, x0
+   [LIVE ASM] 0x72758e0b50: mov w0, w1
+   [LIVE ASM] 0x72758e0b54: mov w1, w3
+   [LIVE ASM] 0x72758e0b58: mov w2, #1
+   [LIVE ASM] 0x72758e0b5c: mov w21, w4
+   [LIVE ASM] 0x72758e0b60: mov w19, w3
+   [LIVE ASM] 0x72758e0b64: bl #0x72758a0fdc
+   [LIVE ASM] 0x72758a0fdc: nop
+   [LIVE ASM] 0x72758a0fe0: adr x9, #0x72758ff760
+   [LIVE ASM] 0x72758a0fe4: ldr x8, [x9, #8]
+   [LIVE ASM] 0x72758a0fe8: cbz x8, #0x72758a102c
+   [LIVE ASM] 0x72758a0fec: adrp x10, #0x7275900000
+   [LIVE ASM] 0x72758a0ff0: add x9, x9, #0x18
+   [LIVE ASM] 0x72758a0ff4: ldr x10, [x10, #0x1f0]
+   [LIVE ASM] 0x72758a0ff8: ldr w11, [x8, #8]
+   [LIVE ASM] 0x72758a0ffc: ubfx x12, x11, #0x1a, #5
+   [LIVE ASM] 0x72758a1000: lsr w13, w11, #2
+   [LIVE ASM] 0x72758a1004: ubfx w11, w11, #0xc, #4
+   [LIVE ASM] 0x72758a1008: ldr x12, [x10, x12, lsl #3]
+   [LIVE ASM] 0x72758a100c: ldr w12, [x12]
+   [LIVE ASM] 0x72758a1010: cmp w12, w0
+   [LIVE ASM] 0x72758a1014: and w12, w13, #0x3c0
+   [LIVE ASM] 0x72758a1018: ccmp w12, w1, #0, eq
+   [LIVE ASM] 0x72758a101c: ccmp w11, w2, #0, eq
+   [LIVE ASM] 0x72758a1020: b.eq #0x72758a102c
+   [LIVE ASM] 0x72758a1024: ldr x8, [x9], #0x10
+   [LIVE ASM] 0x72758a1028: cbnz x8, #0x72758a0ff8
+   [LIVE ASM] 0x72758a0ff8: ldr w11, [x8, #8]
+   [LIVE ASM] 0x72758a0ffc: ubfx x12, x11, #0x1a, #5
+   [LIVE ASM] 0x72758a1000: lsr w13, w11, #2
+   [LIVE ASM] 0x72758a1004: ubfx w11, w11, #0xc, #4
+   [LIVE ASM] 0x72758a1008: ldr x12, [x10, x12, lsl #3]
+   [LIVE ASM] 0x72758a100c: ldr w12, [x12]
+   [LIVE ASM] 0x72758a1010: cmp w12, w0
+   [LIVE ASM] 0x72758a1014: and w12, w13, #0x3c0
+   [LIVE ASM] 0x72758a1018: ccmp w12, w1, #0, eq
+   [LIVE ASM] 0x72758a101c: ccmp w11, w2, #0, eq
+   [LIVE ASM] 0x72758a1020: b.eq #0x72758a102c
+   [LIVE ASM] 0x72758a102c: mov x0, x8
+   [LIVE ASM] 0x72758a1030: ret
+   [LIVE ASM] 0x72758e0b68: cbz x0, #0x72758e0bb4
+   [LIVE ASM] 0x72758e0b6c: ldr w8, [x0, #8]
+   [LIVE ASM] 0x72758e0b70: mov x23, x0
+   [LIVE ASM] 0x72758e0b74: and w8, w8, #0x1f
+   [LIVE ASM] 0x72758e0b78: cmp w8, #0x10
+   [LIVE ASM] 0x72758e0b7c: b.ne #0x72758e0bb4
+   [LIVE ASM] 0x72758e0b80: cmp w24, #2
+   [LIVE ASM] 0x72758e0b84: b.ne #0x72758e0bcc
+   [LIVE ASM] 0x72758e0b88: mov x0, x22
+   [LIVE ASM] 0x72758e0b8c: bl #0x72758a1034
+   [LIVE ASM] 0x72758a1034: cbz x0, #0x72758a1078
+   [LIVE ASM] 0x72758a1038: stp x30, x19, [sp, #-0x10]!
+   [LIVE ASM] 0x72758a103c: mov x19, x0
+   [LIVE ASM] 0x72758a1040: ldr x0, [x0, #0x40]
+   [LIVE ASM] 0x72758a1044: cbz x0, #0x72758a1068
+   [LIVE ASM] 0x72758a1068: mov x0, x19
+   [LIVE ASM] 0x72758a106c: mov w1, #0x48
+   [LIVE ASM] 0x72758a1070: ldp x30, x19, [sp], #0x10
+   [LIVE ASM] 0x72758a1074: b #0x72758bc128
+   [LIVE ASM] 0x72758bc128: cbz x1, #0x72758bc14c
+   [LIVE ASM] 0x72758bc12c: stp x30, x19, [sp, #-0x10]!
+   [LIVE ASM] 0x72758bc130: adrp x8, #0x72758fe000
+   [LIVE ASM] 0x72758bc134: mov x2, x1
+   [LIVE ASM] 0x72758bc138: mov w1, wzr
+   [LIVE ASM] 0x72758bc13c: mov x19, x0
+   [LIVE ASM] 0x72758bc140: ldr x8, [x8, #0xf10]
+   [LIVE ASM] 0x72758bc144: blr x8
+   [LIVE ASM] 0x72758ac40c: stp q0, q0, [x0]
+   [LIVE ASM] 0x72758ac410: stp q0, q0, [x0, #0x20]
+   [LIVE ASM] 0x72758ac414: stp q0, q0, [x4, #-0x40]
+   [LIVE ASM] 0x72758ac418: stp q0, q0, [x4, #-0x20]
+   [LIVE ASM] 0x72758ac41c: ret
+   [LIVE ASM] 0x72758bc148: ldp x30, x19, [sp], #0x10
+   [LIVE ASM] 0x72758bc14c: ret
+   [LIVE ASM] 0x72758e0b90: mov x0, x22
+   [LIVE ASM] 0x72758e0b94: mov x1, x23
+   [LIVE ASM] 0x72758e0b98: bl #0x72758a107c
+   [LIVE ASM] 0x72758a107c: str x30, [sp, #-0x20]!
+   [LIVE ASM] 0x72758a1080: stp x20, x19, [sp, #0x10]
+   [LIVE ASM] 0x72758a1084: cbz x1, #0x72758a10dc
+   [LIVE ASM] 0x72758a1088: movi v0.2d, #0000000000000000
+   [LIVE ASM] 0x72758a108c: str xzr, [x0, #0x40]
+   [LIVE ASM] 0x72758a1090: adrp x9, #0x7275900000
+   [LIVE ASM] 0x72758a1094: mov x19, x1
+   [LIVE ASM] 0x72758a1098: mov x20, x0
+   [LIVE ASM] 0x72758a109c: stp q0, q0, [x0]
+   [LIVE ASM] 0x72758a10a0: stp q0, q0, [x0, #0x20]
+   [LIVE ASM] 0x72758a10a4: ldr w8, [x1, #8]
+   [LIVE ASM] 0x72758a10a8: ldr x9, [x9, #0x1f0]
+   [LIVE ASM] 0x72758a10ac: ubfx x8, x8, #0x1a, #5
+   [LIVE ASM] 0x72758a10b0: ldr x8, [x9, x8, lsl #3]
+   [LIVE ASM] 0x72758a10b4: ldr x8, [x8, #0x30]
+   [LIVE ASM] 0x72758a10b8: cbz x8, #0x72758a10c8
+   [LIVE ASM] 0x72758a10bc: blr x8
+   [LIVE ASM] 0x72758d0f0c: stp x30, x19, [sp, #-0x10]!
+   [LIVE ASM] 0x72758d0f10: mov w0, #1
+   [LIVE ASM] 0x72758d0f14: mov w1, #0x120
+   [LIVE ASM] 0x72758d0f18: bl #0x72758f8080
+   [LIVE ASM] 0x72758f8080: adrp x16, #0x7275900000
+   [LIVE ASM] 0x72758f8084: ldr x17, [x16, #0x2c8]
+   [LIVE ASM] 0x72758f8088: add x16, x16, #0x2c8
+   [LIVE ASM] 0x72758f808c: br x17
+   [LIVE ASM] 0x72758d0f1c: mov x19, x0
+   [LIVE ASM] 0x72758d0f20: cbz x0, #0x72758d0f2c
+   [LIVE ASM] 0x72758d0f24: mov x0, x19
+   [LIVE ASM] 0x72758d0f28: bl #0x72758b1320
+   [LIVE ASM] 0x72758b1320: movi v0.2d, #0000000000000000
+   [LIVE ASM] 0x72758b1324: stp q0, q0, [x0]
+   [LIVE ASM] 0x72758b1328: stp q0, q0, [x0, #0x20]
+   [LIVE ASM] 0x72758b132c: stp q0, q0, [x0, #0x40]
+   [LIVE ASM] 0x72758b1330: stp q0, q0, [x0, #0x60]
+   [LIVE ASM] 0x72758b1334: stp q0, q0, [x0, #0x80]
+   [LIVE ASM] 0x72758b1338: stp q0, q0, [x0, #0xa0]
+   [LIVE ASM] 0x72758b133c: stp q0, q0, [x0, #0xc0]
+   [LIVE ASM] 0x72758b1340: stp q0, q0, [x0, #0xe0]
+   [LIVE ASM] 0x72758b1344: stp q0, q0, [x0, #0x100]
+   [LIVE ASM] 0x72758b1348: ret
+   [LIVE ASM] 0x72758d0f2c: mov x0, x19
+   [LIVE ASM] 0x72758d0f30: ldp x30, x19, [sp], #0x10
+   [LIVE ASM] 0x72758d0f34: ret
+   [LIVE ASM] 0x72758a10c0: str x0, [x20, #0x40]
+   [LIVE ASM] 0x72758a10c4: cbz x0, #0x72758a10ec
+   [LIVE ASM] 0x72758a10c8: mov w0, wzr
+   [LIVE ASM] 0x72758a10cc: str x19, [x20]
+   [LIVE ASM] 0x72758a10d0: ldp x20, x19, [sp, #0x10]
+   [LIVE ASM] 0x72758a10d4: ldr x30, [sp], #0x20
+   [LIVE ASM] 0x72758a10d8: ret
+   [LIVE ASM] 0x72758e0b9c: cbz w0, #0x72758e0be4
+   [LIVE ASM] 0x72758e0be4: cmp w21, #0
+   [LIVE ASM] 0x72758e0be8: mov x0, x22
+   [LIVE ASM] 0x72758e0bec: mov x1, x20
+   [LIVE ASM] 0x72758e0bf0: mov w2, w19
+   [LIVE ASM] 0x72758e0bf4: ldp x20, x19, [sp, #0x30]
+   [LIVE ASM] 0x72758e0bf8: cset w3, ne
+   [LIVE ASM] 0x72758e0bfc: ldp x22, x21, [sp, #0x20]
+   [LIVE ASM] 0x72758e0c00: ldp x24, x23, [sp, #0x10]
+   [LIVE ASM] 0x72758e0c04: ldr x30, [sp], #0x40
+   [LIVE ASM] 0x72758e0c08: b #0x72758a10fc
+   [LIVE ASM] 0x72758a10fc: cmp w3, #1
+   [LIVE ASM] 0x72758a1100: b.hi #0x72758a1160
+   [LIVE ASM] 0x72758a1104: ldr x8, [x0]
+   [LIVE ASM] 0x72758a1108: cbz x8, #0x72758a1160
+   [LIVE ASM] 0x72758a110c: ldr w9, [x8, #8]
+   [LIVE ASM] 0x72758a1110: tbnz w9, #0x19, #0x72758a1124
+   [LIVE ASM] 0x72758a1114: lsr w9, w9, #2
+   [LIVE ASM] 0x72758a1118: and w9, w9, #0x3c0
+   [LIVE ASM] 0x72758a111c: cmp w9, w2
+   [LIVE ASM] 0x72758a1120: b.ne #0x72758a1160
+   [LIVE ASM] 0x72758a1124: stp w2, w3, [x0, #8]
+   [LIVE ASM] 0x72758a1128: cmp w3, #1
+   [LIVE ASM] 0x72758a112c: ldr w8, [x8, #8]
+   [LIVE ASM] 0x72758a1130: b.eq #0x72758a1144
+   [LIVE ASM] 0x72758a1134: ubfx w9, w8, #0xc, #4
+   [LIVE ASM] 0x72758a1138: sub w9, w9, #3
+   [LIVE ASM] 0x72758a113c: cmp w9, #2
+   [LIVE ASM] 0x72758a1140: b.hi #0x72758a1168
+   [LIVE ASM] 0x72758a1168: adrp x9, #0x7275900000
+   [LIVE ASM] 0x72758a116c: ubfx x8, x8, #0x1a, #5
+   [LIVE ASM] 0x72758a1170: ldr x9, [x9, #0x1f0]
+   [LIVE ASM] 0x72758a1174: ldr x8, [x9, x8, lsl #3]
+   [LIVE ASM] 0x72758a1178: ldr x0, [x0, #0x40]
+   [LIVE ASM] 0x72758a117c: ldr x3, [x8, #0x28]!
+   [LIVE ASM] 0x72758a1180: br x3
+   [LIVE ASM] 0x72758d0f08: b #0x72758b1b7c
+   [LIVE ASM] 0x72758b1b7c: sub sp, sp, #0x140
+   [LIVE ASM] 0x72758b1b80: stp x29, x30, [sp, #0x120]
+   [LIVE ASM] 0x72758b1b84: stp x20, x19, [sp, #0x130]
+   [LIVE ASM] 0x72758b1b88: movi v0.2d, #0000000000000000
+   [LIVE ASM] 0x72758b1b8c: mov x20, x0
+   [LIVE ASM] 0x72758b1b90: str xzr, [x0, #8]
+   [LIVE ASM] 0x72758b1b94: mov x0, sp
+   [LIVE ASM] 0x72758b1b98: stp q0, q0, [sp]
+   [LIVE ASM] 0x72758b1b9c: stp q0, q0, [sp, #0x20]
+   [LIVE ASM] 0x72758b1ba0: stp q0, q0, [sp, #0x40]
+   [LIVE ASM] 0x72758b1ba4: stp q0, q0, [sp, #0x60]
+   [LIVE ASM] 0x72758b1ba8: stp q0, q0, [sp, #0x80]
+   [LIVE ASM] 0x72758b1bac: stp q0, q0, [sp, #0xa0]
+   [LIVE ASM] 0x72758b1bb0: stp q0, q0, [sp, #0xc0]
+   [LIVE ASM] 0x72758b1bb4: stp q0, q0, [sp, #0xe0]
+   [LIVE ASM] 0x72758b1bb8: stp q0, q0, [sp, #0x100]
+   [LIVE ASM] 0x72758b1bbc: bl #0x72758b135c
+   [LIVE ASM] 0x72758b135c: stp x29, x30, [sp, #-0x40]!
+   [LIVE ASM] 0x72758b1360: stp x24, x23, [sp, #0x10]
+   [LIVE ASM] 0x72758b1364: stp x22, x21, [sp, #0x20]
+   [LIVE ASM] 0x72758b1368: stp x20, x19, [sp, #0x30]
+   [LIVE ASM] 0x72758b136c: sub sp, sp, #0x200
+   [LIVE ASM] 0x72758b1370: mov w21, w2
+   [LIVE ASM] 0x72758b1374: mov x20, x1
+   [LIVE ASM] 0x72758b1378: mov x19, x0
+   [LIVE ASM] 0x72758b137c: cmp w2, #0x80
+   [LIVE ASM] 0x72758b1380: b.eq #0x72758b13ac
+   [LIVE ASM] 0x72758b1384: cmp w21, #0x100
+   [LIVE ASM] 0x72758b1388: b.eq #0x72758b13c4
+   [LIVE ASM] 0x72758b13c4: mov w9, #0xe
+   [LIVE ASM] 0x72758b13c8: adrp x8, #0x7275906000
+   [LIVE ASM] 0x72758b13cc: str w9, [x19]
+   [LIVE ASM] 0x72758b13d0: ldrb w9, [x8, #0xcb0]
+   [LIVE ASM] 0x72758b13d4: tbnz w9, #0, #0x72758b1624
+   [LIVE ASM] 0x72758b1624: nop
+   [LIVE ASM] 0x72758b1628: adr x8, #0x7275905198
+   [LIVE ASM] 0x72758b162c: str xzr, [x19, #8]
+   [LIVE ASM] 0x72758b1630: ldrb w8, [x8]
+   [LIVE ASM] 0x72758b1634: cbz w8, #0x72758b166c
+   [LIVE ASM] 0x72758b1638: cmp w8, #0xff
+   [LIVE ASM] 0x72758b163c: b.ne #0x72758b1648
+   [LIVE ASM] 0x72758b1648: add x0, x19, #0x10
+   [LIVE ASM] 0x72758b164c: mov w2, w21
+   [LIVE ASM] 0x72758b1650: mov x1, x20
+   [LIVE ASM] 0x72758b1654: add sp, sp, #0x200
+   [LIVE ASM] 0x72758b1658: ldp x20, x19, [sp, #0x30]
+   [LIVE ASM] 0x72758b165c: ldp x22, x21, [sp, #0x20]
+   [LIVE ASM] 0x72758b1660: ldp x24, x23, [sp, #0x10]
+   [LIVE ASM] 0x72758b1664: ldp x29, x30, [sp], #0x40
+   [LIVE ASM] 0x72758b1668: b #0x72758c0bd4
+   [LIVE ASM] 0x72758c0bd4: stp x30, x23, [sp, #-0x30]!
+   [LIVE ASM] 0x72758c0bd8: stp x22, x21, [sp, #0x10]
+   [LIVE ASM] 0x72758c0bdc: stp x20, x19, [sp, #0x20]
+   [LIVE ASM] 0x72758c0be0: mov x19, x2
+   [LIVE ASM] 0x72758c0be4: mov x20, x0
+   [LIVE ASM] 0x72758c0be8: cmp x2, #0x80
+   [LIVE ASM] 0x72758c0bec: b.eq #0x72758c0c00
+   [LIVE ASM] 0x72758c0bf0: cmp x19, #0x100
+   [LIVE ASM] 0x72758c0bf4: b.eq #0x72758c0c00
+   [LIVE ASM] 0x72758c0c00: lsr x22, x19, #5
+   [LIVE ASM] 0x72758c0c04: mov x0, x20
+   [LIVE ASM] 0x72758c0c08: lsl x21, x22, #2
+   [LIVE ASM] 0x72758c0c0c: mov x2, x21
+   [LIVE ASM] 0x72758c0c10: add x8, x20, x22, lsl #4
+   [LIVE ASM] 0x72758c0c14: add x23, x8, #0x70
+   [LIVE ASM] 0x72758c0c18: bl #0x72758bd7c0
+   [LIVE ASM] 0x72758bd7c0: bti c
+   [LIVE ASM] 0x72758bd7c4: add x4, x1, x2
+   [LIVE ASM] 0x72758bd7c8: add x5, x0, x2
+   [LIVE ASM] 0x72758bd7cc: cmp x2, #0x80
+   [LIVE ASM] 0x72758bd7d0: b.hi #0x72758bd8c0
+   [LIVE ASM] 0x72758bd7d4: cmp x2, #0x20
+   [LIVE ASM] 0x72758bd7d8: b.hi #0x72758bd850
+   [LIVE ASM] 0x72758bd7dc: cmp x2, #0x10
+   [LIVE ASM] 0x72758bd7e0: b.lo #0x72758bd7f8
+   [LIVE ASM] 0x72758bd7e4: ldp x6, x7, [x1]
+   [LIVE ASM] 0x72758bd7e8: ldp x12, x13, [x4, #-0x10]
+   [LIVE ASM] 0x72758bd7ec: stp x6, x7, [x0]
+   [LIVE ASM] 0x72758bd7f0: stp x12, x13, [x5, #-0x10]
+   [LIVE ASM] 0x72758bd7f4: ret
+   [LIVE ASM] 0x72758c0c1c: mov x8, xzr
+   [LIVE ASM] 0x72758c0c20: add x9, x20, x21
+   [LIVE ASM] 0x72758c0c24: add x10, x20, x22, lsl #3
+   [LIVE ASM] 0x72758c0c28: nop
+   [LIVE ASM] 0x72758c0c2c: adr x11, #0x7275885e78
+   [LIVE ASM] 0x72758c0c30: b #0x72758c0c7c
+   [LIVE ASM] 0x72758c0c7c: add x13, x9, x8
+   [LIVE ASM] 0x72758c0c80: add x15, x20, x8
+   [LIVE ASM] 0x72758c0c84: sub x12, x13, #4
+   [LIVE ASM] 0x72758c0c88: movi v1.2d, #0000000000000000
+   [LIVE ASM] 0x72758c0c8c: ld1r {v0.4s}, [x12]
+   [LIVE ASM] 0x72758c0c90: asr x12, x8, #2
+   [LIVE ASM] 0x72758c0c94: udiv x12, x12, x22
+   [LIVE ASM] 0x72758c0c98: aese v1.16b, v0.16b
+   [LIVE ASM] 0x72758c0c9c: fmov w14, s1
+   [LIVE ASM] 0x72758c0ca0: ror w14, w14, #8
+   [LIVE ASM] 0x72758c0ca4: str w14, [x13]
+   [LIVE ASM] 0x72758c0ca8: ldrb w12, [x11, x12]
+   [LIVE ASM] 0x72758c0cac: ldr w16, [x15]
+   [LIVE ASM] 0x72758c0cb0: eor w12, w16, w12
+   [LIVE ASM] 0x72758c0cb4: eor w12, w12, w14
+   [LIVE ASM] 0x72758c0cb8: str w12, [x13]
+   [LIVE ASM] 0x72758c0cbc: ldr w14, [x15, #4]
+   [LIVE ASM] 0x72758c0cc0: eor w12, w12, w14
+   [LIVE ASM] 0x72758c0cc4: str w12, [x13, #4]
+   [LIVE ASM] 0x72758c0cc8: ldr w14, [x15, #8]
+   [LIVE ASM] 0x72758c0ccc: eor w12, w14, w12
+   [LIVE ASM] 0x72758c0cd0: str w12, [x13, #8]
+   [LIVE ASM] 0x72758c0cd4: ldr w14, [x15, #0xc]
+   [LIVE ASM] 0x72758c0cd8: eor w12, w14, w12
+   [LIVE ASM] 0x72758c0cdc: add x14, x10, x8
+   [LIVE ASM] 0x72758c0ce0: cmp x14, x23
+   [LIVE ASM] 0x72758c0ce4: str w12, [x13, #0xc]
+   [LIVE ASM] 0x72758c0ce8: b.hi #0x72758c0c6c
+   [LIVE ASM] 0x72758c0cec: cmp x19, #0xc0
+   [LIVE ASM] 0x72758c0cf0: b.eq #0x72758c0c34
+   [LIVE ASM] 0x72758c0cf4: cmp x19, #0x100
+   [LIVE ASM] 0x72758c0cf8: b.ne #0x72758c0c6c
+   [LIVE ASM] 0x72758c0cfc: movi v0.2d, #0000000000000000
+   [LIVE ASM] 0x72758c0d00: add x15, x9, x8
+   [LIVE ASM] 0x72758c0d04: dup v1.4s, w12
+   [LIVE ASM] 0x72758c0d08: add x12, x20, x8
+   [LIVE ASM] 0x72758c0d0c: aese v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0d10: ldr w13, [x12, #0x10]
+   [LIVE ASM] 0x72758c0d14: fmov w14, s0
+   [LIVE ASM] 0x72758c0d18: eor w13, w14, w13
+   [LIVE ASM] 0x72758c0d1c: mov w14, #6
+   [LIVE ASM] 0x72758c0d20: str w13, [x15, #0x10]
+   [LIVE ASM] 0x72758c0d24: ldr w12, [x12, #0x14]
+   [LIVE ASM] 0x72758c0d28: eor w12, w13, w12
+   [LIVE ASM] 0x72758c0d2c: mov w13, #7
+   [LIVE ASM] 0x72758c0d30: str w12, [x15, #0x14]
+   [LIVE ASM] 0x72758c0d34: b #0x72758c0c3c
+   [LIVE ASM] 0x72758c0c3c: lsl x14, x14, #2
+   [LIVE ASM] 0x72758c0c40: lsl x13, x13, #2
+   [LIVE ASM] 0x72758c0c44: add x15, x20, x14
+   [LIVE ASM] 0x72758c0c48: add x14, x9, x14
+   [LIVE ASM] 0x72758c0c4c: ldr w15, [x15, x8]
+   [LIVE ASM] 0x72758c0c50: eor w12, w15, w12
+   [LIVE ASM] 0x72758c0c54: add x15, x20, x13
+   [LIVE ASM] 0x72758c0c58: add x13, x9, x13
+   [LIVE ASM] 0x72758c0c5c: str w12, [x14, x8]
+   [LIVE ASM] 0x72758c0c60: ldr w14, [x15, x8]
+   [LIVE ASM] 0x72758c0c64: eor w12, w14, w12
+   [LIVE ASM] 0x72758c0c68: str w12, [x13, x8]
+   [LIVE ASM] 0x72758c0c6c: add x8, x8, x21
+   [LIVE ASM] 0x72758c0c70: add x12, x9, x8
+   [LIVE ASM] 0x72758c0c74: cmp x12, x23
+   [LIVE ASM] 0x72758c0c78: b.hs #0x72758c0d38
+   [LIVE ASM] 0x72758c0c6c: add x8, x8, x21
+   [LIVE ASM] 0x72758c0c70: add x12, x9, x8
+   [LIVE ASM] 0x72758c0c74: cmp x12, x23
+   [LIVE ASM] 0x72758c0c78: b.hs #0x72758c0d38
+   [LIVE ASM] 0x72758c0d38: mov w0, wzr
+   [LIVE ASM] 0x72758c0d3c: ldp x20, x19, [sp, #0x20]
+   [LIVE ASM] 0x72758c0d40: ldp x22, x21, [sp, #0x10]
+   [LIVE ASM] 0x72758c0d44: ldp x30, x23, [sp], #0x30
+   [LIVE ASM] 0x72758c0d48: ret
+   [LIVE ASM] 0x72758b1bc0: mov w19, w0
+   [LIVE ASM] 0x72758b1bc4: cbnz w0, #0x72758b1db8
+   [LIVE ASM] 0x72758b1bc8: adrp x8, #0x7275900000
+   [LIVE ASM] 0x72758b1bcc: ldr w2, [sp]
+   [LIVE ASM] 0x72758b1bd0: ldr x8, [x8, #0x1f8]
+   [LIVE ASM] 0x72758b1bd4: str w2, [x20]
+   [LIVE ASM] 0x72758b1bd8: ldrb w8, [x8]
+   [LIVE ASM] 0x72758b1bdc: cbz w8, #0x72758b1c10
+   [LIVE ASM] 0x72758b1be0: cmp w8, #0xff
+   [LIVE ASM] 0x72758b1be4: b.ne #0x72758b1bf4
+   [LIVE ASM] 0x72758b1bf4: ldr x8, [sp, #8]
+   [LIVE ASM] 0x72758b1bf8: mov x9, sp
+   [LIVE ASM] 0x72758b1bfc: add x0, x20, #0x10
+   [LIVE ASM] 0x72758b1c00: add x8, x9, x8, lsl #2
+   [LIVE ASM] 0x72758b1c04: add x1, x8, #0x10
+   [LIVE ASM] 0x72758b1c08: bl #0x72758c0b70
+   [LIVE ASM] 0x72758c0b70: ldr q0, [x1, w2, sxtw #4]
+   [LIVE ASM] 0x72758c0b74: cmp w2, #1
+   [LIVE ASM] 0x72758c0b78: str q0, [x0]
+   [LIVE ASM] 0x72758c0b7c: b.le #0x72758c0bb8
+   [LIVE ASM] 0x72758c0b80: mov w10, w2
+   [LIVE ASM] 0x72758c0b84: lsl w8, w2, #4
+   [LIVE ASM] 0x72758c0b88: add x9, x0, #0x10
+   [LIVE ASM] 0x72758c0b8c: sub x10, x10, #1
+   [LIVE ASM] 0x72758c0b90: sub w11, w8, #0x10
+   [LIVE ASM] 0x72758c0b94: ldr q0, [x1, w11, sxtw]
+   [LIVE ASM] 0x72758c0b98: sub x10, x10, #1
+   [LIVE ASM] 0x72758c0b9c: sub w11, w11, #0x10
+   [LIVE ASM] 0x72758c0ba0: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0ba4: str q0, [x9], #0x10
+   [LIVE ASM] 0x72758c0ba8: cbnz x10, #0x72758c0b94
+   [LIVE ASM] 0x72758c0b94: ldr q0, [x1, w11, sxtw]
+   [LIVE ASM] 0x72758c0b98: sub x10, x10, #1
+   [LIVE ASM] 0x72758c0b9c: sub w11, w11, #0x10
+   [LIVE ASM] 0x72758c0ba0: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0ba4: str q0, [x9], #0x10
+   [LIVE ASM] 0x72758c0ba8: cbnz x10, #0x72758c0b94
+   [LIVE ASM] 0x72758c0bac: ldr q0, [x1, xzr]
+   [LIVE ASM] 0x72758c0bb0: str q0, [x0, x8]
+   [LIVE ASM] 0x72758c0bb4: ret
+   [LIVE ASM] 0x72758b1c0c: b #0x72758b1db8
+   [LIVE ASM] 0x72758b1db8: mov x0, sp
+   [LIVE ASM] 0x72758b1dbc: mov w1, #0x120
+   [LIVE ASM] 0x72758b1dc0: bl #0x72758bc128
+   [LIVE ASM] 0x72758b1dc4: mov w0, w19
+   [LIVE ASM] 0x72758b1dc8: ldp x20, x19, [sp, #0x130]
+   [LIVE ASM] 0x72758b1dcc: ldp x29, x30, [sp, #0x120]
+   [LIVE ASM] 0x72758b1dd0: add sp, sp, #0x140
+   [LIVE ASM] 0x72758b1dd4: ret
+   [LIVE ASM] 0x72758b407c: mov w23, w0
+   [LIVE ASM] 0x72758b4080: cbnz w0, #0x72758b40a8
+   [LIVE ASM] 0x72758b4084: add x0, sp, #8
+   [LIVE ASM] 0x72758b4088: mov x5, sp
+   [LIVE ASM] 0x72758b408c: mov w1, #1
+   [LIVE ASM] 0x72758b4090: mov x2, x22
+   [LIVE ASM] 0x72758b4094: mov x3, x21
+   [LIVE ASM] 0x72758b4098: mov x4, x20
+   [LIVE ASM] 0x72758b409c: mov x6, x19
+   [LIVE ASM] 0x72758b40a0: bl #0x72758e0c30
+   [LIVE ASM] 0x72758e0c30: sub sp, sp, #0x60
+   [LIVE ASM] 0x72758e0c34: stp x30, x23, [sp, #0x30]
+   [LIVE ASM] 0x72758e0c38: stp x22, x21, [sp, #0x40]
+   [LIVE ASM] 0x72758e0c3c: stp x20, x19, [sp, #0x50]
+   [LIVE ASM] 0x72758e0c40: sub x22, x3, #8
+   [LIVE ASM] 0x72758e0c44: str xzr, [x5]
+   [LIVE ASM] 0x72758e0c48: cmp x22, x6
+   [LIVE ASM] 0x72758e0c4c: b.ls #0x72758e0c6c
+   [LIVE ASM] 0x72758e0c6c: mov x19, x5
+   [LIVE ASM] 0x72758e0c70: mov x20, x4
+   [LIVE ASM] 0x72758e0c74: cmp w1, #1
+   [LIVE ASM] 0x72758e0c78: b.eq #0x72758e0ce8
+   [LIVE ASM] 0x72758e0ce8: mov w21, #-0x6100
+   [LIVE ASM] 0x72758e0cec: sub x8, x3, #0x10
+   [LIVE ASM] 0x72758e0cf0: mov w9, #-0x10
+   [LIVE ASM] 0x72758e0cf4: cmp x8, x9
+   [LIVE ASM] 0x72758e0cf8: b.hi #0x72758e0c54
+   [LIVE ASM] 0x72758e0cfc: and x8, x3, #7
+   [LIVE ASM] 0x72758e0d00: cbnz x8, #0x72758e0c54
+   [LIVE ASM] 0x72758e0d04: cmp x3, #0x10
+   [LIVE ASM] 0x72758e0d08: b.ne #0x72758e0d74
+   [LIVE ASM] 0x72758e0d74: lsr x8, x3, #3
+   [LIVE ASM] 0x72758e0d78: add x3, sp, #0x20
+   [LIVE ASM] 0x72758e0d7c: mov x1, x2
+   [LIVE ASM] 0x72758e0d80: mov x2, x8
+   [LIVE ASM] 0x72758e0d84: mov x4, x20
+   [LIVE ASM] 0x72758e0d88: mov x5, x19
+   [LIVE ASM] 0x72758e0d8c: bl #0x72758e0e74
+   [LIVE ASM] 0x72758e0e74: sub sp, sp, #0xc0
+   [LIVE ASM] 0x72758e0e78: stp x30, x27, [sp, #0x70]
+   [LIVE ASM] 0x72758e0e7c: stp x26, x25, [sp, #0x80]
+   [LIVE ASM] 0x72758e0e80: stp x24, x23, [sp, #0x90]
+   [LIVE ASM] 0x72758e0e84: stp x22, x21, [sp, #0xa0]
+   [LIVE ASM] 0x72758e0e88: stp x20, x19, [sp, #0xb0]
+   [LIVE ASM] 0x72758e0e8c: cmp x2, #3
+   [LIVE ASM] 0x72758e0e90: str xzr, [x5]
+   [LIVE ASM] 0x72758e0e94: b.hs #0x72758e0ea0
+   [LIVE ASM] 0x72758e0ea0: sub x8, x2, #1
+   [LIVE ASM] 0x72758e0ea4: mov x24, x2
+   [LIVE ASM] 0x72758e0ea8: lsl x23, x8, #3
+   [LIVE ASM] 0x72758e0eac: mov x22, x0
+   [LIVE ASM] 0x72758e0eb0: ldr x10, [x1], #8
+   [LIVE ASM] 0x72758e0eb4: mov x0, x4
+   [LIVE ASM] 0x72758e0eb8: mov x2, x23
+   [LIVE ASM] 0x72758e0ebc: add x9, x8, x8, lsl #1
+   [LIVE ASM] 0x72758e0ec0: mov x19, x5
+   [LIVE ASM] 0x72758e0ec4: mov x20, x4
+   [LIVE ASM] 0x72758e0ec8: mov x21, x3
+   [LIVE ASM] 0x72758e0ecc: lsl x25, x9, #1
+   [LIVE ASM] 0x72758e0ed0: str x10, [x3]
+   [LIVE ASM] 0x72758e0ed4: bl #0x72758bd7c0
+   [LIVE ASM] 0x72758e0ed8: cbz x25, #0x72758e0f94
+   [LIVE ASM] 0x72758e0edc: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758e0ee0: adrp x10, #0x727587e000
+   [LIVE ASM] 0x72758e0ee4: adrp x11, #0x727587e000
+   [LIVE ASM] 0x72758e0ee8: adrp x12, #0x727587e000
+   [LIVE ASM] 0x72758e0eec: add x9, x20, x24, lsl #3
+   [LIVE ASM] 0x72758e0ef0: ldr q0, [x8, #0x5e0]
+   [LIVE ASM] 0x72758e0ef4: sub x26, x9, #0x10
+   [LIVE ASM] 0x72758e0ef8: mov x27, x26
+   [LIVE ASM] 0x72758e0efc: str q0, [sp, #0x30]
+   [LIVE ASM] 0x72758e0f00: ldr q0, [x10, #0x260]
+   [LIVE ASM] 0x72758e0f04: str q0, [sp, #0x20]
+   [LIVE ASM] 0x72758e0f08: ldr q0, [x11, #0x280]
+   [LIVE ASM] 0x72758e0f0c: str q0, [sp, #0x10]
+   [LIVE ASM] 0x72758e0f10: ldr q0, [x12, #0x430]
+   [LIVE ASM] 0x72758e0f14: str q0, [sp]
+   [LIVE ASM] 0x72758e0f18: ldp q5, q1, [sp, #0x20]
+   [LIVE ASM] 0x72758e0f1c: dup v0.2d, x25
+   [LIVE ASM] 0x72758e0f20: lsr x8, x25, #8
+   [LIVE ASM] 0x72758e0f24: add x1, sp, #0x48
+   [LIVE ASM] 0x72758e0f28: add x3, sp, #0x58
+   [LIVE ASM] 0x72758e0f2c: add x4, sp, #0x68
+   [LIVE ASM] 0x72758e0f30: mov x0, x22
+   [LIVE ASM] 0x72758e0f34: mov w2, #0x10
+   [LIVE ASM] 0x72758e0f38: ushl v2.2d, v0.2d, v1.2d
+   [LIVE ASM] 0x72758e0f3c: ushl v1.2d, v0.2d, v5.2d
+   [LIVE ASM] 0x72758e0f40: ldr q5, [sp, #0x10]
+   [LIVE ASM] 0x72758e0f44: ushl v3.2d, v0.2d, v5.2d
+   [LIVE ASM] 0x72758e0f48: ldr q0, [sp]
+   [LIVE ASM] 0x72758e0f4c: fmov d4, x8
+   [LIVE ASM] 0x72758e0f50: mov v4.d[1], x25
+   [LIVE ASM] 0x72758e0f54: tbl v0.16b, {v1.16b, v2.16b, v3.16b, v4.16b}, v0.16b
+   [LIVE ASM] 0x72758e0f58: ldr d1, [x21]
+   [LIVE ASM] 0x72758e0f5c: eor v0.8b, v1.8b, v0.8b
+   [LIVE ASM] 0x72758e0f60: str d0, [x21]
+   [LIVE ASM] 0x72758e0f64: str d0, [sp, #0x48]
+   [LIVE ASM] 0x72758e0f68: ldr x8, [x27]
+   [LIVE ASM] 0x72758e0f6c: str x8, [sp, #0x50]
+   [LIVE ASM] 0x72758e0f70: bl #0x72758a1184
+   [LIVE ASM] 0x72758a1184: str x30, [sp, #-0x20]!
+   [LIVE ASM] 0x72758a1188: stp x20, x19, [sp, #0x10]
+   [LIVE ASM] 0x72758a118c: ldr x11, [x0]
+   [LIVE ASM] 0x72758a1190: cbz x11, #0x72758a120c
+   [LIVE ASM] 0x72758a1194: str xzr, [x4]
+   [LIVE ASM] 0x72758a1198: mov x19, x4
+   [LIVE ASM] 0x72758a119c: ldr w8, [x11, #8]
+   [LIVE ASM] 0x72758a11a0: and x10, x8, #0x1f
+   [LIVE ASM] 0x72758a11a4: cbz w10, #0x72758a121c
+   [LIVE ASM] 0x72758a11a8: mov x6, x3
+   [LIVE ASM] 0x72758a11ac: mov x20, x2
+   [LIVE ASM] 0x72758a11b0: mov x5, x1
+   [LIVE ASM] 0x72758a11b4: ubfx w9, w8, #0xc, #4
+   [LIVE ASM] 0x72758a11b8: cmp w9, #6
+   [LIVE ASM] 0x72758a11bc: b.eq #0x72758a122c
+   [LIVE ASM] 0x72758a11c0: cmp w9, #1
+   [LIVE ASM] 0x72758a11c4: b.ne #0x72758a1250
+   [LIVE ASM] 0x72758a11c8: cmp x10, x20
+   [LIVE ASM] 0x72758a11cc: b.ne #0x72758a127c
+   [LIVE ASM] 0x72758a11d0: str x20, [x19]
+   [LIVE ASM] 0x72758a11d4: adrp x9, #0x7275900000
+   [LIVE ASM] 0x72758a11d8: ldr w8, [x11, #8]
+   [LIVE ASM] 0x72758a11dc: mov x2, x5
+   [LIVE ASM] 0x72758a11e0: mov x3, x6
+   [LIVE ASM] 0x72758a11e4: ldr x9, [x9, #0x1f0]
+   [LIVE ASM] 0x72758a11e8: ubfx x8, x8, #0x1a, #5
+   [LIVE ASM] 0x72758a11ec: ldr w1, [x0, #0xc]
+   [LIVE ASM] 0x72758a11f0: ldp x20, x19, [sp, #0x10]
+   [LIVE ASM] 0x72758a11f4: ldr x9, [x9, x8, lsl #3]
+   [LIVE ASM] 0x72758a11f8: ldr x8, [x0, #0x40]
+   [LIVE ASM] 0x72758a11fc: ldr x4, [x9, #8]
+   [LIVE ASM] 0x72758a1200: mov x0, x8
+   [LIVE ASM] 0x72758a1204: ldr x30, [sp], #0x20
+   [LIVE ASM] 0x72758a1208: br x4
+   [LIVE ASM] 0x72758d0efc: b #0x72758b25f4
+   [LIVE ASM] 0x72758b25f4: str x30, [sp, #-0x30]!
+   [LIVE ASM] 0x72758b25f8: stp x22, x21, [sp, #0x10]
+   [LIVE ASM] 0x72758b25fc: stp x20, x19, [sp, #0x20]
+   [LIVE ASM] 0x72758b2600: cmp w1, #1
+   [LIVE ASM] 0x72758b2604: b.ls #0x72758b261c
+   [LIVE ASM] 0x72758b261c: adrp x8, #0x7275900000
+   [LIVE ASM] 0x72758b2620: mov x19, x3
+   [LIVE ASM] 0x72758b2624: mov x20, x2
+   [LIVE ASM] 0x72758b2628: mov w22, w1
+   [LIVE ASM] 0x72758b262c: mov x21, x0
+   [LIVE ASM] 0x72758b2630: ldr x8, [x8, #0x1f8]
+   [LIVE ASM] 0x72758b2634: ldrb w8, [x8]
+   [LIVE ASM] 0x72758b2638: cbz w8, #0x72758b266c
+   [LIVE ASM] 0x72758b263c: cmp w8, #0xff
+   [LIVE ASM] 0x72758b2640: b.ne #0x72758b264c
+   [LIVE ASM] 0x72758b264c: mov x0, x21
+   [LIVE ASM] 0x72758b2650: mov w1, w22
+   [LIVE ASM] 0x72758b2654: mov x2, x20
+   [LIVE ASM] 0x72758b2658: mov x3, x19
+   [LIVE ASM] 0x72758b265c: ldp x20, x19, [sp, #0x20]
+   [LIVE ASM] 0x72758b2660: ldp x22, x21, [sp, #0x10]
+   [LIVE ASM] 0x72758b2664: ldr x30, [sp], #0x30
+   [LIVE ASM] 0x72758b2668: b #0x72758c0a04
+   [LIVE ASM] 0x72758c0a04: ldr x8, [x0, #8]
+   [LIVE ASM] 0x72758c0a08: ldr w9, [x0]
+   [LIVE ASM] 0x72758c0a0c: ldr q0, [x2]
+   [LIVE ASM] 0x72758c0a10: add x8, x0, x8, lsl #2
+   [LIVE ASM] 0x72758c0a14: add x8, x8, #0x10
+   [LIVE ASM] 0x72758c0a18: cmp w9, #0xa
+   [LIVE ASM] 0x72758c0a1c: cbz w1, #0x72758c0ac8
+   [LIVE ASM] 0x72758c0ac8: b.eq #0x72758c0afc
+   [LIVE ASM] 0x72758c0acc: cmp w9, #0xc
+   [LIVE ASM] 0x72758c0ad0: b.eq #0x72758c0ae8
+   [LIVE ASM] 0x72758c0ad4: ldp q1, q2, [x8], #0x20
+   [LIVE ASM] 0x72758c0ad8: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0adc: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0ae0: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0ae4: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0ae8: ldp q1, q2, [x8], #0x20
+   [LIVE ASM] 0x72758c0aec: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0af0: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0af4: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0af8: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0afc: ldp q1, q2, [x8]
+   [LIVE ASM] 0x72758c0b00: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0b04: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b08: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0b0c: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b10: ldp q1, q2, [x8, #0x20]
+   [LIVE ASM] 0x72758c0b14: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0b18: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b1c: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0b20: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b24: ldp q1, q2, [x8, #0x40]
+   [LIVE ASM] 0x72758c0b28: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0b2c: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b30: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0b34: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b38: ldp q1, q2, [x8, #0x60]
+   [LIVE ASM] 0x72758c0b3c: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0b40: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b44: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0b48: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b4c: ldp q1, q2, [x8, #0x80]
+   [LIVE ASM] 0x72758c0b50: aesd v0.16b, v1.16b
+   [LIVE ASM] 0x72758c0b54: aesimc v0.16b, v0.16b
+   [LIVE ASM] 0x72758c0b58: aesd v0.16b, v2.16b
+   [LIVE ASM] 0x72758c0b5c: ldr q1, [x8, #0xa0]
+   [LIVE ASM] 0x72758c0b60: mov w0, wzr
+   [LIVE ASM] 0x72758c0b64: eor v0.16b, v1.16b, v0.16b
+   [LIVE ASM] 0x72758c0b68: str q0, [x3]
+   [LIVE ASM] 0x72758c0b6c: ret
+   [LIVE ASM] 0x72758e0f74: cbnz w0, #0x72758e0fa0
+   [LIVE ASM] 0x72758e0f78: ldp x8, x9, [sp, #0x58]
+   [LIVE ASM] 0x72758e0f7c: cmp x27, x20
+   [LIVE ASM] 0x72758e0f80: str x8, [x21]
+   [LIVE ASM] 0x72758e0f84: str x9, [x27], #0xfffffffffffffff8
+   [LIVE ASM] 0x72758e0f88: csel x27, x26, x27, eq
+   [LIVE ASM] 0x72758e0f8c: subs x25, x25, #1
+   [LIVE ASM] 0x72758e0f90: b.ne #0x72758e0f18
+   [LIVE ASM] 0x72758e0f18: ldp q5, q1, [sp, #0x20]
+   [LIVE ASM] 0x72758e0f1c: dup v0.2d, x25
+   [LIVE ASM] 0x72758e0f20: lsr x8, x25, #8
+   [LIVE ASM] 0x72758e0f24: add x1, sp, #0x48
+   [LIVE ASM] 0x72758e0f28: add x3, sp, #0x58
+   [LIVE ASM] 0x72758e0f2c: add x4, sp, #0x68
+   [LIVE ASM] 0x72758e0f30: mov x0, x22
+   [LIVE ASM] 0x72758e0f34: mov w2, #0x10
+   [LIVE ASM] 0x72758e0f38: ushl v2.2d, v0.2d, v1.2d
+   [LIVE ASM] 0x72758e0f3c: ushl v1.2d, v0.2d, v5.2d
+   [LIVE ASM] 0x72758e0f40: ldr q5, [sp, #0x10]
+   [LIVE ASM] 0x72758e0f44: ushl v3.2d, v0.2d, v5.2d
+   [LIVE ASM] 0x72758e0f48: ldr q0, [sp]
+   [LIVE ASM] 0x72758e0f4c: fmov d4, x8
+   [LIVE ASM] 0x72758e0f50: mov v4.d[1], x25
+   [LIVE ASM] 0x72758e0f54: tbl v0.16b, {v1.16b, v2.16b, v3.16b, v4.16b}, v0.16b
+   [LIVE ASM] 0x72758e0f58: ldr d1, [x21]
+   [LIVE ASM] 0x72758e0f5c: eor v0.8b, v1.8b, v0.8b
+   [LIVE ASM] 0x72758e0f60: str d0, [x21]
+   [LIVE ASM] 0x72758e0f64: str d0, [sp, #0x48]
+   [LIVE ASM] 0x72758e0f68: ldr x8, [x27]
+   [LIVE ASM] 0x72758e0f6c: str x8, [sp, #0x50]
+   [LIVE ASM] 0x72758e0f70: bl #0x72758a1184
+   [LIVE ASM] 0x72758e0f94: mov w24, wzr
+   [LIVE ASM] 0x72758e0f98: str x23, [x19]
+   [LIVE ASM] 0x72758e0f9c: b #0x72758e0fb4
+   [LIVE ASM] 0x72758e0fb4: add x0, sp, #0x48
+   [LIVE ASM] 0x72758e0fb8: mov w1, #0x10
+   [LIVE ASM] 0x72758e0fbc: bl #0x72758bc128
+   [LIVE ASM] 0x72758ac39c: mov x3, #0x10
+   [LIVE ASM] 0x72758ac3a0: and x3, x3, x2, lsr #1
+   [LIVE ASM] 0x72758ac3a4: sub x5, x4, x3
+   [LIVE ASM] 0x72758ac3a8: str q0, [x0]
+   [LIVE ASM] 0x72758ac3ac: str q0, [x0, x3]
+   [LIVE ASM] 0x72758ac3b0: stur q0, [x5, #-0x10]
+   [LIVE ASM] 0x72758ac3b4: stur q0, [x4, #-0x10]
+   [LIVE ASM] 0x72758ac3b8: ret
+   [LIVE ASM] 0x72758e0fc0: add x0, sp, #0x58
+   [LIVE ASM] 0x72758e0fc4: mov w1, #0x10
+   [LIVE ASM] 0x72758e0fc8: bl #0x72758bc128
+   [LIVE ASM] 0x72758e0fcc: mov w0, w24
+   [LIVE ASM] 0x72758e0fd0: ldp x20, x19, [sp, #0xb0]
+   [LIVE ASM] 0x72758e0fd4: ldp x22, x21, [sp, #0xa0]
+   [LIVE ASM] 0x72758e0fd8: ldp x24, x23, [sp, #0x90]
+   [LIVE ASM] 0x72758e0fdc: ldp x26, x25, [sp, #0x80]
+   [LIVE ASM] 0x72758e0fe0: ldp x30, x27, [sp, #0x70]
+   [LIVE ASM] 0x72758e0fe4: add sp, sp, #0xc0
+   [LIVE ASM] 0x72758e0fe8: ret
+   [LIVE ASM] 0x72758e0d90: mov w21, w0
+   [LIVE ASM] 0x72758e0d94: cbnz w0, #0x72758e0d30
+   [LIVE ASM] 0x72758e0d98: b #0x72758e0dbc
+   [LIVE ASM] 0x72758e0dbc: nop
+   [LIVE ASM] 0x72758e0dc0: adr x0, #0x7275886ca8
+   [LIVE ASM] 0x72758e0dc4: add x1, sp, #0x20
+   [LIVE ASM] 0x72758e0dc8: mov w2, #4
+   [LIVE ASM] 0x72758e0dcc: bl #0x72758a135c
+   [LIVE ASM] 0x72758a135c: cmp x2, #4
+   [LIVE ASM] 0x72758a1360: b.hs #0x72758a1370
+   [LIVE ASM] 0x72758a1370: mov x9, xzr
+   [LIVE ASM] 0x72758a1374: mov w8, wzr
+   [LIVE ASM] 0x72758a1378: add x10, x0, x9
+   [LIVE ASM] 0x72758a137c: add x12, x1, x9
+   [LIVE ASM] 0x72758a1380: ldr w10, [x10]
+   [LIVE ASM] 0x72758a1384: add x11, x9, #4
+   [LIVE ASM] 0x72758a1388: ldr w12, [x12]
+   [LIVE ASM] 0x72758a138c: eor w10, w12, w10
+   [LIVE ASM] 0x72758a1390: orr w8, w10, w8
+   [LIVE ASM] 0x72758a1394: add x10, x9, #8
+   [LIVE ASM] 0x72758a1398: mov x9, x11
+   [LIVE ASM] 0x72758a139c: cmp x10, x2
+   [LIVE ASM] 0x72758a13a0: b.ls #0x72758a1378
+   [LIVE ASM] 0x72758a13a4: cmp x11, x2
+   [LIVE ASM] 0x72758a13a8: b.hs #0x72758a13d4
+   [LIVE ASM] 0x72758a13d4: and w9, w8, #0xffff
+   [LIVE ASM] 0x72758a13d8: orr w0, w9, w8, lsr #16
+   [LIVE ASM] 0x72758a13dc: ret
+   [LIVE ASM] 0x72758e0dd0: ldr w8, [sp, #0x24]
+   [LIVE ASM] 0x72758e0dd4: mov w21, #7
+   [LIVE ASM] 0x72758e0dd8: cmp w0, #0
+   [LIVE ASM] 0x72758e0ddc: mov w9, #0x6300
+   [LIVE ASM] 0x72758e0de0: csel x10, xzr, x9, eq
+   [LIVE ASM] 0x72758e0de4: add x1, sp, #8
+   [LIVE ASM] 0x72758e0de8: rev w23, w8
+   [LIVE ASM] 0x72758e0dec: mov w2, #8
+   [LIVE ASM] 0x72758e0df0: sub x8, x22, x23
+   [LIVE ASM] 0x72758e0df4: eor x11, x8, x21
+   [LIVE ASM] 0x72758e0df8: sub x21, x21, x8
+   [LIVE ASM] 0x72758e0dfc: bic x21, x21, x11
+   [LIVE ASM] 0x72758e0e00: and x11, x11, x8
+   [LIVE ASM] 0x72758e0e04: orr x11, x21, x11
+   [LIVE ASM] 0x72758e0e08: asr x21, x11, #0x3f
+   [LIVE ASM] 0x72758e0e0c: and x9, x9, x21
+   [LIVE ASM] 0x72758e0e10: mvn x21, x21
+   [LIVE ASM] 0x72758e0e14: and x21, x21, x10
+   [LIVE ASM] 0x72758e0e18: orr x21, x9, x21
+   [LIVE ASM] 0x72758e0e1c: and x22, x8, #7
+   [LIVE ASM] 0x72758e0e20: ldr x9, [x19]
+   [LIVE ASM] 0x72758e0e24: mov x4, xzr
+   [LIVE ASM] 0x72758e0e28: str xzr, [sp, #8]
+   [LIVE ASM] 0x72758e0e2c: add x8, x9, x20
+   [LIVE ASM] 0x72758e0e30: mov w9, #8
+   [LIVE ASM] 0x72758e0e34: sub x0, x8, #8
+   [LIVE ASM] 0x72758e0e38: sub x3, x9, x22
+   [LIVE ASM] 0x72758e0e3c: bl #0x72758a13e0
+   [LIVE ASM] 0x72758a13e0: cbz x2, #0x72758a1458
+   [LIVE ASM] 0x72758a13e4: mov x8, x0
+   [LIVE ASM] 0x72758a13e8: mov w0, wzr
+   [LIVE ASM] 0x72758a13ec: mov x9, xzr
+   [LIVE ASM] 0x72758a13f0: sub x10, x2, x4
+   [LIVE ASM] 0x72758a13f4: ldrb w11, [x8, x9]
+   [LIVE ASM] 0x72758a13f8: mov x12, x9
+   [LIVE ASM] 0x72758a13fc: ldrb w13, [x1, x9]
+   [LIVE ASM] 0x72758a1400: mov x14, x9
+   [LIVE ASM] 0x72758a1404: eor x15, x3, x12
+   [LIVE ASM] 0x72758a1408: sub x12, x12, x3
+   [LIVE ASM] 0x72758a140c: bic x12, x12, x15
+   [LIVE ASM] 0x72758a1410: and x15, x15, x3
+   [LIVE ASM] 0x72758a1414: orr x15, x12, x15
+   [LIVE ASM] 0x72758a1418: asr x12, x15, #0x3f
+   [LIVE ASM] 0x72758a141c: eor x15, x10, x14
+   [LIVE ASM] 0x72758a1420: sub x14, x14, x10
+   [LIVE ASM] 0x72758a1424: bic x14, x14, x15
+   [LIVE ASM] 0x72758a1428: and x15, x15, x10
+   [LIVE ASM] 0x72758a142c: orr x15, x14, x15
+   [LIVE ASM] 0x72758a1430: asr x14, x15, #0x3f
+   [LIVE ASM] 0x72758a1434: bic w12, w14, w12
+   [LIVE ASM] 0x72758a1438: add x9, x9, #1
+   [LIVE ASM] 0x72758a143c: cmp x2, x9
+   [LIVE ASM] 0x72758a1440: eor w11, w13, w11
+   [LIVE ASM] 0x72758a1444: and w11, w11, w12
+   [LIVE ASM] 0x72758a1448: and w11, w11, #0xff
+   [LIVE ASM] 0x72758a144c: orr w0, w11, w0
+   [LIVE ASM] 0x72758a1450: b.ne #0x72758a13f4
+   [LIVE ASM] 0x72758a13f4: ldrb w11, [x8, x9]
+   [LIVE ASM] 0x72758a13f8: mov x12, x9
+   [LIVE ASM] 0x72758a13fc: ldrb w13, [x1, x9]
+   [LIVE ASM] 0x72758a1400: mov x14, x9
+   [LIVE ASM] 0x72758a1404: eor x15, x3, x12
+   [LIVE ASM] 0x72758a1408: sub x12, x12, x3
+   [LIVE ASM] 0x72758a140c: bic x12, x12, x15
+   [LIVE ASM] 0x72758a1410: and x15, x15, x3
+   [LIVE ASM] 0x72758a1414: orr x15, x12, x15
+   [LIVE ASM] 0x72758a1418: asr x12, x15, #0x3f
+   [LIVE ASM] 0x72758a141c: eor x15, x10, x14
+   [LIVE ASM] 0x72758a1420: sub x14, x14, x10
+   [LIVE ASM] 0x72758a1424: bic x14, x14, x15
+   [LIVE ASM] 0x72758a1428: and x15, x15, x10
+   [LIVE ASM] 0x72758a142c: orr x15, x14, x15
+   [LIVE ASM] 0x72758a1430: asr x14, x15, #0x3f
+   [LIVE ASM] 0x72758a1434: bic w12, w14, w12
+   [LIVE ASM] 0x72758a1438: add x9, x9, #1
+   [LIVE ASM] 0x72758a143c: cmp x2, x9
+   [LIVE ASM] 0x72758a1440: eor w11, w13, w11
+   [LIVE ASM] 0x72758a1444: and w11, w11, w12
+   [LIVE ASM] 0x72758a1448: and w11, w11, #0xff
+   [LIVE ASM] 0x72758a144c: orr w0, w11, w0
+   [LIVE ASM] 0x72758a1450: b.ne #0x72758a13f4
+   [LIVE ASM] 0x72758a1454: ret
+   [LIVE ASM] 0x72758e0e40: mov w8, #-0x6300
+   [LIVE ASM] 0x72758e0e44: cmp w0, #0
+   [LIVE ASM] 0x72758e0e48: csneg w21, w8, w21, ne
+   [LIVE ASM] 0x72758e0e4c: str w0, [sp, #0x1c]
+   [LIVE ASM] 0x72758e0e50: cbnz w21, #0x72758e0d30
+   [LIVE ASM] 0x72758e0e54: add x0, x20, x23
+   [LIVE ASM] 0x72758e0e58: mov w1, wzr
+   [LIVE ASM] 0x72758e0e5c: mov x2, x22
+   [LIVE ASM] 0x72758e0e60: bl #0x72758ac380
+   [LIVE ASM] 0x72758ac3c0: add x4, x0, x2
+   [LIVE ASM] 0x72758ac3c4: cmp x2, #4
+   [LIVE ASM] 0x72758ac3c8: b.lo #0x72758ac3e8
+   [LIVE ASM] 0x72758ac3e8: cbz x2, #0x72758ac3fc
+   [LIVE ASM] 0x72758ac3fc: ret
+   [LIVE ASM] 0x72758e0e64: str x23, [x19]
+   [LIVE ASM] 0x72758e0e68: b #0x72758e0d44
+   [LIVE ASM] 0x72758e0d44: add x0, sp, #0x1c
+   [LIVE ASM] 0x72758e0d48: mov w1, #4
+   [LIVE ASM] 0x72758e0d4c: bl #0x72758bc128
+   [LIVE ASM] 0x72758ac3cc: lsr x3, x2, #3
+   [LIVE ASM] 0x72758ac3d0: sub x5, x4, x3, lsl #2
+   [LIVE ASM] 0x72758ac3d4: str s0, [x0]
+   [LIVE ASM] 0x72758ac3d8: str s0, [x0, x3, lsl #2]
+   [LIVE ASM] 0x72758ac3dc: stur s0, [x5, #-4]
+   [LIVE ASM] 0x72758ac3e0: stur s0, [x4, #-4]
+   [LIVE ASM] 0x72758ac3e4: ret
+   [LIVE ASM] 0x72758e0d50: add x0, sp, #0x20
+   [LIVE ASM] 0x72758e0d54: mov w1, #8
+   [LIVE ASM] 0x72758e0d58: bl #0x72758bc128
+   [LIVE ASM] 0x72758e0d5c: mov w0, w21
+   [LIVE ASM] 0x72758e0d60: ldp x20, x19, [sp, #0x50]
+   [LIVE ASM] 0x72758e0d64: ldp x22, x21, [sp, #0x40]
+   [LIVE ASM] 0x72758e0d68: ldp x30, x23, [sp, #0x30]
+   [LIVE ASM] 0x72758e0d6c: add sp, sp, #0x60
+   [LIVE ASM] 0x72758e0d70: ret
+   [LIVE ASM] 0x72758b40a4: mov w23, w0
+   [LIVE ASM] 0x72758b40a8: add x0, sp, #8
+   [LIVE ASM] 0x72758b40ac: bl #0x72758e0c0c
+   [LIVE ASM] 0x72758e0c0c: cbz x0, #0x72758e0c2c
+   [LIVE ASM] 0x72758e0c10: stp x30, x19, [sp, #-0x10]!
+   [LIVE ASM] 0x72758e0c14: mov x19, x0
+   [LIVE ASM] 0x72758e0c18: bl #0x72758a1034
+   [LIVE ASM] 0x72758a1048: ldr x8, [x19]
+   [LIVE ASM] 0x72758a104c: adrp x9, #0x7275900000
+   [LIVE ASM] 0x72758a1050: ldr w8, [x8, #8]
+   [LIVE ASM] 0x72758a1054: ldr x9, [x9, #0x1f0]
+   [LIVE ASM] 0x72758a1058: ubfx x8, x8, #0x1a, #5
+   [LIVE ASM] 0x72758a105c: ldr x8, [x9, x8, lsl #3]
+   [LIVE ASM] 0x72758a1060: ldr x8, [x8, #0x38]
+   [LIVE ASM] 0x72758a1064: blr x8
+   [LIVE ASM] 0x72758d0f38: stp x30, x19, [sp, #-0x10]!
+   [LIVE ASM] 0x72758d0f3c: mov x19, x0
+   [LIVE ASM] 0x72758d0f40: bl #0x72758b134c
+   [LIVE ASM] 0x72758b134c: cbz x0, #0x72758b1358
+   [LIVE ASM] 0x72758b1350: mov w1, #0x120
+   [LIVE ASM] 0x72758b1354: b #0x72758bc128
+   [LIVE ASM] 0x72758d0f44: mov x0, x19
+   [LIVE ASM] 0x72758d0f48: ldp x30, x19, [sp], #0x10
+   [LIVE ASM] 0x72758d0f4c: b #0x72758f7fd0
+   [LIVE ASM] 0x72758f7fd0: adrp x16, #0x7275900000
+   [LIVE ASM] 0x72758f7fd4: ldr x17, [x16, #0x270]
+   [LIVE ASM] 0x72758f7fd8: add x16, x16, #0x270
+   [LIVE ASM] 0x72758f7fdc: br x17
+   [LIVE ASM] 0x72758e0c1c: mov x0, x19
+   [LIVE ASM] 0x72758e0c20: mov w1, #0x48
+   [LIVE ASM] 0x72758e0c24: ldp x30, x19, [sp], #0x10
+   [LIVE ASM] 0x72758e0c28: b #0x72758bc128
+   [LIVE ASM] 0x72758b40b0: mov w0, w23
+   [LIVE ASM] 0x72758b40b4: ldp x20, x19, [sp, #0x70]
+   [LIVE ASM] 0x72758b40b8: ldp x22, x21, [sp, #0x60]
+   [LIVE ASM] 0x72758b40bc: ldp x30, x23, [sp, #0x50]
+   [LIVE ASM] 0x72758b40c0: add sp, sp, #0x80
+   [LIVE ASM] 0x72758b40c4: ret
+   [LIVE ASM] 0x72758af958: mov w22, w0
+   [LIVE ASM] 0x72758af95c: sub x0, x29, #0x28
+   [LIVE ASM] 0x72758af960: mov w1, #0x20
+   [LIVE ASM] 0x72758af964: bl #0x72758bc128
+   [LIVE ASM] 0x72758af968: cbz w22, #0x72758af978
+   [LIVE ASM] 0x72758af978: adrp x8, #0x7275906000
+   [LIVE ASM] 0x72758af97c: add x21, x21, x23
+   [LIVE ASM] 0x72758af980: sub x3, x21, x20
+   [LIVE ASM] 0x72758af984: sub x0, x29, #0x68
+   [LIVE ASM] 0x72758af988: sub x4, x29, #0x88
+   [LIVE ASM] 0x72758af98c: mov x2, x20
+   [LIVE ASM] 0x72758af990: ldrb w1, [x8, #0xc20]
+   [LIVE ASM] 0x72758af994: bl #0x72758d34c0
+   [LIVE ASM] 0x72758d34c0: ldr x16, #0x72758d34c8
+   [LIVE ASM] 0x72758d34c4: br x16
+   [LIVE ASM] 0x72758d34d0: stp x22, x21, [sp, #0x100]
+   [LIVE ASM] 0x72758d34d4: stp x20, x19, [sp, #0x110]
+   [LIVE ASM] 0x72758d34d8: mov x20, x0
+   [LIVE ASM] 0x72758d34dc: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d34e0: mov x19, x4
+   [LIVE ASM] 0x72758d34e4: mov x22, x3
+   [LIVE ASM] 0x72758d34e8: mov x23, x2
+   [LIVE ASM] 0x72758d34ec: mov x21, x1
+   [LIVE ASM] 0x72758d34f0: bl #0x72758a37f4
+   [LIVE ASM] 0x72758a37f4: movi v0.2d, #0000000000000000
+   [LIVE ASM] 0x72758a37f8: stur q0, [x0, #0x5c]
+   [LIVE ASM] 0x72758a37fc: stp q0, q0, [x0]
+   [LIVE ASM] 0x72758a3800: stp q0, q0, [x0, #0x20]
+   [LIVE ASM] 0x72758a3804: stp q0, q0, [x0, #0x40]
+   [LIVE ASM] 0x72758a3808: ret
+   [LIVE ASM] 0x72758d34f4: cmp x21, #0x41
+   [LIVE ASM] 0x72758d34f8: b.lo #0x72758d352c
+   [LIVE ASM] 0x72758d352c: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d3530: mov w1, wzr
+   [LIVE ASM] 0x72758d3534: bl #0x72758a381c
+   [LIVE ASM] 0x72758a381c: cmp w1, #1
+   [LIVE ASM] 0x72758a3820: b.ls #0x72758a382c
+   [LIVE ASM] 0x72758a382c: adrp x9, #0x727587e000
+   [LIVE ASM] 0x72758a3830: adrp x10, #0x727587e000
+   [LIVE ASM] 0x72758a3834: fmov s0, wzr
+   [LIVE ASM] 0x72758a3838: fmov s1, w1
+   [LIVE ASM] 0x72758a383c: mov x8, x0
+   [LIVE ASM] 0x72758a3840: mov w0, wzr
+   [LIVE ASM] 0x72758a3844: ldr q2, [x9, #0x2a0]
+   [LIVE ASM] 0x72758a3848: adrp x9, #0x727587e000
+   [LIVE ASM] 0x72758a384c: ldr q3, [x10, #0x1b0]
+   [LIVE ASM] 0x72758a3850: adrp x10, #0x727587e000
+   [LIVE ASM] 0x72758a3854: cmeq v0.4s, v1.4s, v0.4s
+   [LIVE ASM] 0x72758a3858: str xzr, [x8, #0x40]
+   [LIVE ASM] 0x72758a385c: ldr q1, [x9, #0x110]
+   [LIVE ASM] 0x72758a3860: str w1, [x8, #0x68]
+   [LIVE ASM] 0x72758a3864: ldr q4, [x10, #0x100]
+   [LIVE ASM] 0x72758a3868: dup v0.4s, v0.s[0]
+   [LIVE ASM] 0x72758a386c: bif v1.16b, v3.16b, v0.16b
+   [LIVE ASM] 0x72758a3870: bsl v0.16b, v4.16b, v2.16b
+   [LIVE ASM] 0x72758a3874: stur q1, [x8, #0x48]
+   [LIVE ASM] 0x72758a3878: stur q0, [x8, #0x58]
+   [LIVE ASM] 0x72758a387c: ret
+   [LIVE ASM] 0x72758d3538: mov w8, #0x40
+   [LIVE ASM] 0x72758d353c: cmp x21, #0x3f
+   [LIVE ASM] 0x72758d3540: sub x8, x8, x21
+   [LIVE ASM] 0x72758d3544: mov x9, sp
+   [LIVE ASM] 0x72758d3548: csel x24, xzr, x8, hi
+   [LIVE ASM] 0x72758d354c: add x25, x9, x21
+   [LIVE ASM] 0x72758d3550: mov x0, x25
+   [LIVE ASM] 0x72758d3554: mov w1, wzr
+   [LIVE ASM] 0x72758d3558: mov x2, x24
+   [LIVE ASM] 0x72758d355c: bl #0x72758ac380
+   [LIVE ASM] 0x72758d3560: mov x0, sp
+   [LIVE ASM] 0x72758d3564: mov x1, x20
+   [LIVE ASM] 0x72758d3568: mov x2, x21
+   [LIVE ASM] 0x72758d356c: bl #0x72758bd7c0
+   [LIVE ASM] 0x72758d3570: ldp q1, q2, [sp]
+   [LIVE ASM] 0x72758d3574: movi v0.16b, #0x36
+   [LIVE ASM] 0x72758d3578: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d357c: mov x1, sp
+   [LIVE ASM] 0x72758d3580: mov w2, #0x40
+   [LIVE ASM] 0x72758d3584: eor v1.16b, v1.16b, v0.16b
+   [LIVE ASM] 0x72758d3588: ldp q3, q4, [sp, #0x20]
+   [LIVE ASM] 0x72758d358c: eor v2.16b, v2.16b, v0.16b
+   [LIVE ASM] 0x72758d3590: stp q1, q2, [sp]
+   [LIVE ASM] 0x72758d3594: eor v1.16b, v3.16b, v0.16b
+   [LIVE ASM] 0x72758d3598: eor v0.16b, v4.16b, v0.16b
+   [LIVE ASM] 0x72758d359c: stp q1, q0, [sp, #0x20]
+   [LIVE ASM] 0x72758d35a0: bl #0x72758a4258
+   [LIVE ASM] 0x72758a4258: sub sp, sp, #0x190
+   [LIVE ASM] 0x72758a425c: str d10, [sp, #0x110]
+   [LIVE ASM] 0x72758a4260: stp d9, d8, [sp, #0x120]
+   [LIVE ASM] 0x72758a4264: stp x29, x30, [sp, #0x130]
+   [LIVE ASM] 0x72758a4268: stp x28, x27, [sp, #0x140]
+   [LIVE ASM] 0x72758a426c: stp x26, x25, [sp, #0x150]
+   [LIVE ASM] 0x72758a4270: stp x24, x23, [sp, #0x160]
+   [LIVE ASM] 0x72758a4274: stp x22, x21, [sp, #0x170]
+   [LIVE ASM] 0x72758a4278: stp x20, x19, [sp, #0x180]
+   [LIVE ASM] 0x72758a427c: cbz x2, #0x72758a4890
+   [LIVE ASM] 0x72758a4280: ldr w8, [x0, #0x40]
+   [LIVE ASM] 0x72758a4284: mov x19, x2
+   [LIVE ASM] 0x72758a4288: mov x20, x1
+   [LIVE ASM] 0x72758a428c: mov x21, x0
+   [LIVE ASM] 0x72758a4290: adds w9, w8, w19
+   [LIVE ASM] 0x72758a4294: and x26, x8, #0x3f
+   [LIVE ASM] 0x72758a4298: str w9, [x0, #0x40]
+   [LIVE ASM] 0x72758a429c: b.lo #0x72758a42ac
+   [LIVE ASM] 0x72758a42ac: adrp x23, #0x7275906000
+   [LIVE ASM] 0x72758a42b0: adrp x24, #0x7275906000
+   [LIVE ASM] 0x72758a42b4: adrp x5, #0x727587e000
+   [LIVE ASM] 0x72758a42b8: adrp x29, #0x727587e000
+   [LIVE ASM] 0x72758a42bc: adrp x10, #0x727587e000
+   [LIVE ASM] 0x72758a42c0: adrp x11, #0x727587e000
+   [LIVE ASM] 0x72758a42c4: adrp x12, #0x727587e000
+   [LIVE ASM] 0x72758a42c8: adrp x13, #0x727587e000
+   [LIVE ASM] 0x72758a42cc: adrp x14, #0x727587e000
+   [LIVE ASM] 0x72758a42d0: adrp x15, #0x727587e000
+   [LIVE ASM] 0x72758a42d4: adrp x16, #0x727587e000
+   [LIVE ASM] 0x72758a42d8: adrp x17, #0x727587e000
+   [LIVE ASM] 0x72758a42dc: adrp x0, #0x727587e000
+   [LIVE ASM] 0x72758a42e0: adrp x1, #0x727587e000
+   [LIVE ASM] 0x72758a42e4: adrp x2, #0x727587e000
+   [LIVE ASM] 0x72758a42e8: adrp x3, #0x727587e000
+   [LIVE ASM] 0x72758a42ec: adrp x4, #0x727587e000
+   [LIVE ASM] 0x72758a42f0: adrp x9, #0x727587e000
+   [LIVE ASM] 0x72758a42f4: nop
+   [LIVE ASM] 0x72758a42f8: adr x25, #0x7275906bbc
+   [LIVE ASM] 0x72758a42fc: cbz w26, #0x72758a45c8
+   [LIVE ASM] 0x72758a45c8: ldr q0, [x5, #0x2b0]
+   [LIVE ASM] 0x72758a45cc: and x27, x19, #0x3f
+   [LIVE ASM] 0x72758a45d0: ldr q1, [x29, #0x210]
+   [LIVE ASM] 0x72758a45d4: mov w28, #1
+   [LIVE ASM] 0x72758a45d8: ldr q2, [x10, #0x270]
+   [LIVE ASM] 0x72758a45dc: ldr q3, [x11, #0x4c0]
+   [LIVE ASM] 0x72758a45e0: ldr q4, [x12, #0x450]
+   [LIVE ASM] 0x72758a45e4: stp q1, q0, [sp, #0xf0]
+   [LIVE ASM] 0x72758a45e8: ldr q5, [x13, #0x220]
+   [LIVE ASM] 0x72758a45ec: ldr q6, [x14, #0x3e0]
+   [LIVE ASM] 0x72758a45f0: stp q3, q2, [sp, #0xd0]
+   [LIVE ASM] 0x72758a45f4: ldr q7, [x15, #0x3a0]
+   [LIVE ASM] 0x72758a45f8: ldr q16, [x16, #0x590]
+   [LIVE ASM] 0x72758a45fc: stp q5, q4, [sp, #0xb0]
+   [LIVE ASM] 0x72758a4600: ldr q17, [x17, #0x510]
+   [LIVE ASM] 0x72758a4604: ldr q18, [x0, #0x70]
+   [LIVE ASM] 0x72758a4608: stp q7, q6, [sp, #0x90]
+   [LIVE ASM] 0x72758a460c: ldr q19, [x1, #0x2c0]
+   [LIVE ASM] 0x72758a4610: ldr q20, [x2, #0x3b0]
+   [LIVE ASM] 0x72758a4614: stp q17, q16, [sp, #0x70]
+   [LIVE ASM] 0x72758a4618: ldr q21, [x3, #0x460]
+   [LIVE ASM] 0x72758a461c: ldr q22, [x4, #0x530]
+   [LIVE ASM] 0x72758a4620: stp q19, q18, [sp, #0x50]
+   [LIVE ASM] 0x72758a4624: ldr q23, [x9, #0x470]
+   [LIVE ASM] 0x72758a4628: stp q21, q20, [sp, #0x30]
+   [LIVE ASM] 0x72758a462c: stp q23, q22, [sp, #0x10]
+   [LIVE ASM] 0x72758a4630: b #0x72758a4644
+   [LIVE ASM] 0x72758a4644: cmp x19, #0x40
+   [LIVE ASM] 0x72758a4648: b.lo #0x72758a487c
+   [LIVE ASM] 0x72758a464c: ldrb w8, [x23, #0xbbc]
+   [LIVE ASM] 0x72758a4650: cmp w8, #1
+   [LIVE ASM] 0x72758a4654: b.ne #0x72758a466c
+   [LIVE ASM] 0x72758a4658: ldr w8, [x24, #0xbc0]
+   [LIVE ASM] 0x72758a465c: mov x29, x19
+   [LIVE ASM] 0x72758a4660: mov x22, x20
+   [LIVE ASM] 0x72758a4664: cbnz w8, #0x72758a468c
+   [LIVE ASM] 0x72758a468c: ldp q20, q19, [sp, #0xf0]
+   [LIVE ASM] 0x72758a4690: mov x8, x20
+   [LIVE ASM] 0x72758a4694: mov x9, x19
+   [LIVE ASM] 0x72758a4698: ldp q22, q21, [sp, #0xd0]
+   [LIVE ASM] 0x72758a469c: ldp q24, q23, [sp, #0xb0]
+   [LIVE ASM] 0x72758a46a0: ldp q26, q25, [sp, #0x90]
+   [LIVE ASM] 0x72758a46a4: ldp q28, q27, [sp, #0x70]
+   [LIVE ASM] 0x72758a46a8: ldp q30, q29, [sp, #0x50]
+   [LIVE ASM] 0x72758a46ac: ldp q8, q31, [sp, #0x30]
+   [LIVE ASM] 0x72758a46b0: ldp q10, q9, [sp, #0x10]
+   [LIVE ASM] 0x72758a46b4: ldur q0, [x21, #0x48]
+   [LIVE ASM] 0x72758a46b8: ldur q1, [x21, #0x58]
+   [LIVE ASM] 0x72758a46bc: ldp q2, q4, [x8]
+   [LIVE ASM] 0x72758a46c0: mov v6.16b, v0.16b
+   [LIVE ASM] 0x72758a46c4: sub x9, x9, #0x40
+   [LIVE ASM] 0x72758a46c8: cmp x9, #0x3f
+   [LIVE ASM] 0x72758a46cc: rev32 v3.16b, v2.16b
+   [LIVE ASM] 0x72758a46d0: mov v2.16b, v1.16b
+   [LIVE ASM] 0x72758a46d4: rev32 v4.16b, v4.16b
+   [LIVE ASM] 0x72758a46d8: add v5.4s, v3.4s, v19.4s
+   [LIVE ASM] 0x72758a46dc: sha256h q6, q1, v5.4s
+   [LIVE ASM] 0x72758a46e0: sha256h2 q2, q0, v5.4s
+   [LIVE ASM] 0x72758a46e4: ldp q5, q17, [x8, #0x20]
+   [LIVE ASM] 0x72758a46e8: add v16.4s, v4.4s, v20.4s
+   [LIVE ASM] 0x72758a46ec: add x8, x8, #0x40
+   [LIVE ASM] 0x72758a46f0: mov v7.16b, v6.16b
+   [LIVE ASM] 0x72758a46f4: sha256h q7, q2, v16.4s
+   [LIVE ASM] 0x72758a46f8: rev32 v5.16b, v5.16b
+   [LIVE ASM] 0x72758a46fc: sha256h2 q2, q6, v16.4s
+   [LIVE ASM] 0x72758a4700: rev32 v6.16b, v17.16b
+   [LIVE ASM] 0x72758a4704: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4708: add v18.4s, v5.4s, v21.4s
+   [LIVE ASM] 0x72758a470c: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4710: sha256h q16, q2, v18.4s
+   [LIVE ASM] 0x72758a4714: sha256h2 q2, q7, v18.4s
+   [LIVE ASM] 0x72758a4718: add v17.4s, v6.4s, v22.4s
+   [LIVE ASM] 0x72758a471c: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4720: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4724: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4728: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a472c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4730: add v17.4s, v3.4s, v23.4s
+   [LIVE ASM] 0x72758a4734: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4738: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a473c: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4740: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4744: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4748: add v17.4s, v4.4s, v24.4s
+   [LIVE ASM] 0x72758a474c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4750: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4754: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4758: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a475c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4760: add v17.4s, v5.4s, v25.4s
+   [LIVE ASM] 0x72758a4764: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4768: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a476c: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4770: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4774: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4778: add v17.4s, v6.4s, v26.4s
+   [LIVE ASM] 0x72758a477c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4780: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4784: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4788: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a478c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4790: add v17.4s, v3.4s, v27.4s
+   [LIVE ASM] 0x72758a4794: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4798: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a479c: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a47a0: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a47a4: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a47a8: add v17.4s, v4.4s, v28.4s
+   [LIVE ASM] 0x72758a47ac: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a47b0: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a47b4: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a47b8: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a47bc: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a47c0: add v17.4s, v5.4s, v29.4s
+   [LIVE ASM] 0x72758a47c4: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a47c8: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a47cc: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a47d0: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a47d4: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a47d8: add v17.4s, v6.4s, v30.4s
+   [LIVE ASM] 0x72758a47dc: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a47e0: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a47e4: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a47e8: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a47ec: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a47f0: add v17.4s, v3.4s, v31.4s
+   [LIVE ASM] 0x72758a47f4: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a47f8: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a47fc: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4800: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4804: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4808: add v17.4s, v4.4s, v8.4s
+   [LIVE ASM] 0x72758a480c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4810: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4814: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4818: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a481c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4820: add v16.4s, v5.4s, v9.4s
+   [LIVE ASM] 0x72758a4824: mov v3.16b, v7.16b
+   [LIVE ASM] 0x72758a4828: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a482c: sha256h q3, q2, v16.4s
+   [LIVE ASM] 0x72758a4830: sha256h2 q2, q7, v16.4s
+   [LIVE ASM] 0x72758a4834: add v5.4s, v6.4s, v10.4s
+   [LIVE ASM] 0x72758a4838: mov v4.16b, v3.16b
+   [LIVE ASM] 0x72758a483c: sha256h q4, q2, v5.4s
+   [LIVE ASM] 0x72758a4840: sha256h2 q2, q3, v5.4s
+   [LIVE ASM] 0x72758a4844: add v0.4s, v4.4s, v0.4s
+   [LIVE ASM] 0x72758a4848: add v1.4s, v2.4s, v1.4s
+   [LIVE ASM] 0x72758a484c: b.hi #0x72758a46bc
+   [LIVE ASM] 0x72758a4850: stur q0, [x21, #0x48]
+   [LIVE ASM] 0x72758a4854: stur q1, [x21, #0x58]
+   [LIVE ASM] 0x72758a4858: b #0x72758a4634
+   [LIVE ASM] 0x72758a4634: ands x8, x19, #-0x40
+   [LIVE ASM] 0x72758a4638: mov x19, x27
+   [LIVE ASM] 0x72758a463c: add x20, x20, x8
+   [LIVE ASM] 0x72758a4640: b.eq #0x72758a4898
+   [LIVE ASM] 0x72758a487c: cbz x19, #0x72758a4890
+   [LIVE ASM] 0x72758a4890: mov w0, wzr
+   [LIVE ASM] 0x72758a4894: b #0x72758a489c
+   [LIVE ASM] 0x72758a489c: ldp x20, x19, [sp, #0x180]
+   [LIVE ASM] 0x72758a48a0: ldp x22, x21, [sp, #0x170]
+   [LIVE ASM] 0x72758a48a4: ldp x24, x23, [sp, #0x160]
+   [LIVE ASM] 0x72758a48a8: ldp x26, x25, [sp, #0x150]
+   [LIVE ASM] 0x72758a48ac: ldp x28, x27, [sp, #0x140]
+   [LIVE ASM] 0x72758a48b0: ldp x29, x30, [sp, #0x130]
+   [LIVE ASM] 0x72758a48b4: ldp d9, d8, [sp, #0x120]
+   [LIVE ASM] 0x72758a48b8: ldr d10, [sp, #0x110]
+   [LIVE ASM] 0x72758a48bc: add sp, sp, #0x190
+   [LIVE ASM] 0x72758a48c0: ret
+   [LIVE ASM] 0x72758d35a4: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d35a8: mov x1, x23
+   [LIVE ASM] 0x72758d35ac: mov x2, x22
+   [LIVE ASM] 0x72758d35b0: bl #0x72758a4258
+   [LIVE ASM] 0x72758a46bc: ldp q2, q4, [x8]
+   [LIVE ASM] 0x72758a46c0: mov v6.16b, v0.16b
+   [LIVE ASM] 0x72758a46c4: sub x9, x9, #0x40
+   [LIVE ASM] 0x72758a46c8: cmp x9, #0x3f
+   [LIVE ASM] 0x72758a46cc: rev32 v3.16b, v2.16b
+   [LIVE ASM] 0x72758a46d0: mov v2.16b, v1.16b
+   [LIVE ASM] 0x72758a46d4: rev32 v4.16b, v4.16b
+   [LIVE ASM] 0x72758a46d8: add v5.4s, v3.4s, v19.4s
+   [LIVE ASM] 0x72758a46dc: sha256h q6, q1, v5.4s
+   [LIVE ASM] 0x72758a46e0: sha256h2 q2, q0, v5.4s
+   [LIVE ASM] 0x72758a46e4: ldp q5, q17, [x8, #0x20]
+   [LIVE ASM] 0x72758a46e8: add v16.4s, v4.4s, v20.4s
+   [LIVE ASM] 0x72758a46ec: add x8, x8, #0x40
+   [LIVE ASM] 0x72758a46f0: mov v7.16b, v6.16b
+   [LIVE ASM] 0x72758a46f4: sha256h q7, q2, v16.4s
+   [LIVE ASM] 0x72758a46f8: rev32 v5.16b, v5.16b
+   [LIVE ASM] 0x72758a46fc: sha256h2 q2, q6, v16.4s
+   [LIVE ASM] 0x72758a4700: rev32 v6.16b, v17.16b
+   [LIVE ASM] 0x72758a4704: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4708: add v18.4s, v5.4s, v21.4s
+   [LIVE ASM] 0x72758a470c: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4710: sha256h q16, q2, v18.4s
+   [LIVE ASM] 0x72758a4714: sha256h2 q2, q7, v18.4s
+   [LIVE ASM] 0x72758a4718: add v17.4s, v6.4s, v22.4s
+   [LIVE ASM] 0x72758a471c: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4720: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4724: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4728: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a472c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4730: add v17.4s, v3.4s, v23.4s
+   [LIVE ASM] 0x72758a4734: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4738: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a473c: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4740: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4744: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4748: add v17.4s, v4.4s, v24.4s
+   [LIVE ASM] 0x72758a474c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4750: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4754: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4758: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a475c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4760: add v17.4s, v5.4s, v25.4s
+   [LIVE ASM] 0x72758a4764: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4768: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a476c: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4770: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4774: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4778: add v17.4s, v6.4s, v26.4s
+   [LIVE ASM] 0x72758a477c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4780: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4784: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4788: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a478c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4790: add v17.4s, v3.4s, v27.4s
+   [LIVE ASM] 0x72758a4794: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4798: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a479c: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a47a0: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a47a4: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a47a8: add v17.4s, v4.4s, v28.4s
+   [LIVE ASM] 0x72758a47ac: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a47b0: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a47b4: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a47b8: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a47bc: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a47c0: add v17.4s, v5.4s, v29.4s
+   [LIVE ASM] 0x72758a47c4: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a47c8: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a47cc: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a47d0: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a47d4: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a47d8: add v17.4s, v6.4s, v30.4s
+   [LIVE ASM] 0x72758a47dc: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a47e0: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a47e4: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a47e8: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a47ec: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a47f0: add v17.4s, v3.4s, v31.4s
+   [LIVE ASM] 0x72758a47f4: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a47f8: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a47fc: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4800: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4804: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4808: add v17.4s, v4.4s, v8.4s
+   [LIVE ASM] 0x72758a480c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4810: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4814: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4818: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a481c: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4820: add v16.4s, v5.4s, v9.4s
+   [LIVE ASM] 0x72758a4824: mov v3.16b, v7.16b
+   [LIVE ASM] 0x72758a4828: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a482c: sha256h q3, q2, v16.4s
+   [LIVE ASM] 0x72758a4830: sha256h2 q2, q7, v16.4s
+   [LIVE ASM] 0x72758a4834: add v5.4s, v6.4s, v10.4s
+   [LIVE ASM] 0x72758a4838: mov v4.16b, v3.16b
+   [LIVE ASM] 0x72758a483c: sha256h q4, q2, v5.4s
+   [LIVE ASM] 0x72758a4840: sha256h2 q2, q3, v5.4s
+   [LIVE ASM] 0x72758a4844: add v0.4s, v4.4s, v0.4s
+   [LIVE ASM] 0x72758a4848: add v1.4s, v2.4s, v1.4s
+   [LIVE ASM] 0x72758a484c: b.hi #0x72758a46bc
+   [LIVE ASM] 0x72758a4880: add x0, x21, w26, uxtw
+   [LIVE ASM] 0x72758a4884: mov x1, x20
+   [LIVE ASM] 0x72758a4888: mov x2, x19
+   [LIVE ASM] 0x72758a488c: bl #0x72758bd7c0
+   [LIVE ASM] 0x72758bd850: ldp x6, x7, [x1]
+   [LIVE ASM] 0x72758bd854: ldp x8, x9, [x1, #0x10]
+   [LIVE ASM] 0x72758bd858: ldp x10, x11, [x4, #-0x20]
+   [LIVE ASM] 0x72758bd85c: ldp x12, x13, [x4, #-0x10]
+   [LIVE ASM] 0x72758bd860: cmp x2, #0x40
+   [LIVE ASM] 0x72758bd864: b.hi #0x72758bd880
+   [LIVE ASM] 0x72758bd868: stp x6, x7, [x0]
+   [LIVE ASM] 0x72758bd86c: stp x8, x9, [x0, #0x10]
+   [LIVE ASM] 0x72758bd870: stp x10, x11, [x5, #-0x20]
+   [LIVE ASM] 0x72758bd874: stp x12, x13, [x5, #-0x10]
+   [LIVE ASM] 0x72758bd878: ret
+   [LIVE ASM] 0x72758d35b4: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d35b8: mov x1, x19
+   [LIVE ASM] 0x72758d35bc: bl #0x72758a48c4
+   [LIVE ASM] 0x72758a48c4: stp x30, x21, [sp, #-0x20]!
+   [LIVE ASM] 0x72758a48c8: stp x20, x19, [sp, #0x10]
+   [LIVE ASM] 0x72758a48cc: ldr w8, [x0, #0x40]
+   [LIVE ASM] 0x72758a48d0: mov x20, x1
+   [LIVE ASM] 0x72758a48d4: mov x19, x0
+   [LIVE ASM] 0x72758a48d8: adrp x21, #0x7275906000
+   [LIVE ASM] 0x72758a48dc: mov w9, #0x80
+   [LIVE ASM] 0x72758a48e0: and x8, x8, #0x3f
+   [LIVE ASM] 0x72758a48e4: add w10, w8, #1
+   [LIVE ASM] 0x72758a48e8: cmp w8, #0x37
+   [LIVE ASM] 0x72758a48ec: add x0, x0, x10
+   [LIVE ASM] 0x72758a48f0: strb w9, [x19, x8]
+   [LIVE ASM] 0x72758a48f4: b.hi #0x72758a490c
+   [LIVE ASM] 0x72758a48f8: mov w9, #0x37
+   [LIVE ASM] 0x72758a48fc: mov w1, wzr
+   [LIVE ASM] 0x72758a4900: sub w2, w9, w8
+   [LIVE ASM] 0x72758a4904: bl #0x72758ac380
+   [LIVE ASM] 0x72758a4908: b #0x72758a4b88
+   [LIVE ASM] 0x72758a4b88: ldp w8, w9, [x19, #0x40]
+   [LIVE ASM] 0x72758a4b8c: ldrb w10, [x21, #0xbbc]
+   [LIVE ASM] 0x72758a4b90: extr w9, w9, w8, #0x1d
+   [LIVE ASM] 0x72758a4b94: lsl w8, w8, #3
+   [LIVE ASM] 0x72758a4b98: rev w8, w8
+   [LIVE ASM] 0x72758a4b9c: cmp w10, #1
+   [LIVE ASM] 0x72758a4ba0: rev w9, w9
+   [LIVE ASM] 0x72758a4ba4: stp w9, w8, [x19, #0x38]
+   [LIVE ASM] 0x72758a4ba8: b.ne #0x72758a4dd4
+   [LIVE ASM] 0x72758a4bac: adrp x8, #0x7275906000
+   [LIVE ASM] 0x72758a4bb0: ldr w8, [x8, #0xbc0]
+   [LIVE ASM] 0x72758a4bb4: cbz w8, #0x72758a4df8
+   [LIVE ASM] 0x72758a4bb8: ldp q1, q4, [x19]
+   [LIVE ASM] 0x72758a4bbc: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4bc0: rev32 v3.16b, v1.16b
+   [LIVE ASM] 0x72758a4bc4: ldr q2, [x8, #0x2b0]
+   [LIVE ASM] 0x72758a4bc8: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4bcc: ldur q0, [x19, #0x48]
+   [LIVE ASM] 0x72758a4bd0: ldur q1, [x19, #0x58]
+   [LIVE ASM] 0x72758a4bd4: add v5.4s, v3.4s, v2.4s
+   [LIVE ASM] 0x72758a4bd8: ldr q7, [x8, #0x210]
+   [LIVE ASM] 0x72758a4bdc: mov v6.16b, v0.16b
+   [LIVE ASM] 0x72758a4be0: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4be4: mov v2.16b, v1.16b
+   [LIVE ASM] 0x72758a4be8: rev32 v4.16b, v4.16b
+   [LIVE ASM] 0x72758a4bec: sha256h q6, q1, v5.4s
+   [LIVE ASM] 0x72758a4bf0: ldr q18, [x8, #0x270]
+   [LIVE ASM] 0x72758a4bf4: sha256h2 q2, q0, v5.4s
+   [LIVE ASM] 0x72758a4bf8: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4bfc: ldp q5, q17, [x19, #0x20]
+   [LIVE ASM] 0x72758a4c00: add v7.4s, v4.4s, v7.4s
+   [LIVE ASM] 0x72758a4c04: mov v16.16b, v6.16b
+   [LIVE ASM] 0x72758a4c08: sha256h q16, q2, v7.4s
+   [LIVE ASM] 0x72758a4c0c: rev32 v5.16b, v5.16b
+   [LIVE ASM] 0x72758a4c10: sha256h2 q2, q6, v7.4s
+   [LIVE ASM] 0x72758a4c14: rev32 v6.16b, v17.16b
+   [LIVE ASM] 0x72758a4c18: ldr q17, [x8, #0x4c0]
+   [LIVE ASM] 0x72758a4c1c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4c20: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4c24: add v18.4s, v5.4s, v18.4s
+   [LIVE ASM] 0x72758a4c28: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4c2c: sha256h q7, q2, v18.4s
+   [LIVE ASM] 0x72758a4c30: sha256h2 q2, q16, v18.4s
+   [LIVE ASM] 0x72758a4c34: ldr q18, [x8, #0x450]
+   [LIVE ASM] 0x72758a4c38: add v17.4s, v6.4s, v17.4s
+   [LIVE ASM] 0x72758a4c3c: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4c40: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4c44: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4c48: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4c4c: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a4c50: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4c54: add v17.4s, v3.4s, v18.4s
+   [LIVE ASM] 0x72758a4c58: ldr q18, [x8, #0x220]
+   [LIVE ASM] 0x72758a4c5c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4c60: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4c64: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a4c68: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4c6c: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4c70: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4c74: add v17.4s, v4.4s, v18.4s
+   [LIVE ASM] 0x72758a4c78: ldr q18, [x8, #0x3e0]
+   [LIVE ASM] 0x72758a4c7c: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4c80: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4c84: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4c88: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4c8c: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a4c90: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4c94: add v17.4s, v5.4s, v18.4s
+   [LIVE ASM] 0x72758a4c98: ldr q18, [x8, #0x3a0]
+   [LIVE ASM] 0x72758a4c9c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4ca0: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4ca4: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a4ca8: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4cac: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4cb0: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4cb4: add v17.4s, v6.4s, v18.4s
+   [LIVE ASM] 0x72758a4cb8: ldr q18, [x8, #0x590]
+   [LIVE ASM] 0x72758a4cbc: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4cc0: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4cc4: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4cc8: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4ccc: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a4cd0: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4cd4: add v17.4s, v3.4s, v18.4s
+   [LIVE ASM] 0x72758a4cd8: ldr q18, [x8, #0x510]
+   [LIVE ASM] 0x72758a4cdc: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4ce0: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4ce4: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a4ce8: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4cec: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4cf0: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4cf4: add v17.4s, v4.4s, v18.4s
+   [LIVE ASM] 0x72758a4cf8: ldr q18, [x8, #0x70]
+   [LIVE ASM] 0x72758a4cfc: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4d00: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4d04: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4d08: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4d0c: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a4d10: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4d14: add v17.4s, v5.4s, v18.4s
+   [LIVE ASM] 0x72758a4d18: ldr q18, [x8, #0x2c0]
+   [LIVE ASM] 0x72758a4d1c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4d20: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4d24: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a4d28: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4d2c: sha256su0 v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4d30: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4d34: add v17.4s, v6.4s, v18.4s
+   [LIVE ASM] 0x72758a4d38: ldr q18, [x8, #0x3b0]
+   [LIVE ASM] 0x72758a4d3c: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4d40: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4d44: sha256su1 v3.4s, v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4d48: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4d4c: sha256su0 v4.4s, v5.4s
+   [LIVE ASM] 0x72758a4d50: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4d54: add v17.4s, v3.4s, v18.4s
+   [LIVE ASM] 0x72758a4d58: ldr q18, [x8, #0x460]
+   [LIVE ASM] 0x72758a4d5c: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4d60: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4d64: sha256su1 v4.4s, v6.4s, v3.4s
+   [LIVE ASM] 0x72758a4d68: sha256h q7, q2, v17.4s
+   [LIVE ASM] 0x72758a4d6c: sha256su0 v5.4s, v6.4s
+   [LIVE ASM] 0x72758a4d70: sha256h2 q2, q16, v17.4s
+   [LIVE ASM] 0x72758a4d74: add v17.4s, v4.4s, v18.4s
+   [LIVE ASM] 0x72758a4d78: ldr q18, [x8, #0x530]
+   [LIVE ASM] 0x72758a4d7c: mov v16.16b, v7.16b
+   [LIVE ASM] 0x72758a4d80: adrp x8, #0x727587e000
+   [LIVE ASM] 0x72758a4d84: sha256su1 v5.4s, v3.4s, v4.4s
+   [LIVE ASM] 0x72758a4d88: sha256h q16, q2, v17.4s
+   [LIVE ASM] 0x72758a4d8c: sha256su0 v6.4s, v3.4s
+   [LIVE ASM] 0x72758a4d90: sha256h2 q2, q7, v17.4s
+   [LIVE ASM] 0x72758a4d94: add v3.4s, v5.4s, v18.4s
+   [LIVE ASM] 0x72758a4d98: mov v7.16b, v16.16b
+   [LIVE ASM] 0x72758a4d9c: sha256su1 v6.4s, v4.4s, v5.4s
+   [LIVE ASM] 0x72758a4da0: ldr q4, [x8, #0x470]
+   [LIVE ASM] 0x72758a4da4: sha256h q7, q2, v3.4s
+   [LIVE ASM] 0x72758a4da8: sha256h2 q2, q16, v3.4s
+   [LIVE ASM] 0x72758a4dac: add v4.4s, v6.4s, v4.4s
+   [LIVE ASM] 0x72758a4db0: mov v3.16b, v7.16b
+   [LIVE ASM] 0x72758a4db4: sha256h q3, q2, v4.4s
+   [LIVE ASM] 0x72758a4db8: sha256h2 q2, q7, v4.4s
+   [LIVE ASM] 0x72758a4dbc: add v0.4s, v3.4s, v0.4s
+   [LIVE ASM] 0x72758a4dc0: add v1.4s, v2.4s, v1.4s
+   [LIVE ASM] 0x72758a4dc4: fmov w8, s0
+   [LIVE ASM] 0x72758a4dc8: stur q0, [x19, #0x48]
+   [LIVE ASM] 0x72758a4dcc: stur q1, [x19, #0x58]
+   [LIVE ASM] 0x72758a4dd0: b #0x72758a4e08
+   [LIVE ASM] 0x72758a4e08: rev w8, w8
+   [LIVE ASM] 0x72758a4e0c: str w8, [x20]
+   [LIVE ASM] 0x72758a4e10: ldr w8, [x19, #0x4c]
+   [LIVE ASM] 0x72758a4e14: rev w8, w8
+   [LIVE ASM] 0x72758a4e18: str w8, [x20, #4]
+   [LIVE ASM] 0x72758a4e1c: ldr w8, [x19, #0x50]
+   [LIVE ASM] 0x72758a4e20: rev w8, w8
+   [LIVE ASM] 0x72758a4e24: str w8, [x20, #8]
+   [LIVE ASM] 0x72758a4e28: ldr w8, [x19, #0x54]
+   [LIVE ASM] 0x72758a4e2c: rev w8, w8
+   [LIVE ASM] 0x72758a4e30: str w8, [x20, #0xc]
+   [LIVE ASM] 0x72758a4e34: ldr w8, [x19, #0x58]
+   [LIVE ASM] 0x72758a4e38: rev w8, w8
+   [LIVE ASM] 0x72758a4e3c: str w8, [x20, #0x10]
+   [LIVE ASM] 0x72758a4e40: ldr w8, [x19, #0x5c]
+   [LIVE ASM] 0x72758a4e44: rev w8, w8
+   [LIVE ASM] 0x72758a4e48: str w8, [x20, #0x14]
+   [LIVE ASM] 0x72758a4e4c: ldr w8, [x19, #0x60]
+   [LIVE ASM] 0x72758a4e50: rev w8, w8
+   [LIVE ASM] 0x72758a4e54: str w8, [x20, #0x18]
+   [LIVE ASM] 0x72758a4e58: ldr w8, [x19, #0x68]
+   [LIVE ASM] 0x72758a4e5c: cbnz w8, #0x72758a4e6c
+   [LIVE ASM] 0x72758a4e60: ldr w8, [x19, #0x64]
+   [LIVE ASM] 0x72758a4e64: rev w8, w8
+   [LIVE ASM] 0x72758a4e68: str w8, [x20, #0x1c]
+   [LIVE ASM] 0x72758a4e6c: mov x0, x19
+   [LIVE ASM] 0x72758a4e70: mov w1, #0x6c
+   [LIVE ASM] 0x72758a4e74: bl #0x72758bc128
+   [LIVE ASM] 0x72758a4e78: ldp x20, x19, [sp, #0x10]
+   [LIVE ASM] 0x72758a4e7c: mov w0, wzr
+   [LIVE ASM] 0x72758a4e80: ldp x30, x21, [sp], #0x20
+   [LIVE ASM] 0x72758a4e84: ret
+   [LIVE ASM] 0x72758d35c0: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d35c4: mov w1, wzr
+   [LIVE ASM] 0x72758d35c8: bl #0x72758a381c
+   [LIVE ASM] 0x72758d35cc: mov x0, x25
+   [LIVE ASM] 0x72758d35d0: mov w1, wzr
+   [LIVE ASM] 0x72758d35d4: mov x2, x24
+   [LIVE ASM] 0x72758d35d8: bl #0x72758ac380
+   [LIVE ASM] 0x72758d35dc: mov x0, sp
+   [LIVE ASM] 0x72758d35e0: mov x1, x20
+   [LIVE ASM] 0x72758d35e4: mov x2, x21
+   [LIVE ASM] 0x72758d35e8: bl #0x72758bd7c0
+   [LIVE ASM] 0x72758d35ec: ldp q1, q2, [sp]
+   [LIVE ASM] 0x72758d35f0: movi v0.16b, #0x5c
+   [LIVE ASM] 0x72758d35f4: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d35f8: mov x1, sp
+   [LIVE ASM] 0x72758d35fc: mov w2, #0x40
+   [LIVE ASM] 0x72758d3600: eor v1.16b, v1.16b, v0.16b
+   [LIVE ASM] 0x72758d3604: ldp q3, q4, [sp, #0x20]
+   [LIVE ASM] 0x72758d3608: eor v2.16b, v2.16b, v0.16b
+   [LIVE ASM] 0x72758d360c: stp q1, q2, [sp]
+   [LIVE ASM] 0x72758d3610: eor v1.16b, v3.16b, v0.16b
+   [LIVE ASM] 0x72758d3614: eor v0.16b, v4.16b, v0.16b
+   [LIVE ASM] 0x72758d3618: stp q1, q0, [sp, #0x20]
+   [LIVE ASM] 0x72758d361c: bl #0x72758a4258
+   [LIVE ASM] 0x72758d3620: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d3624: mov x1, x19
+   [LIVE ASM] 0x72758d3628: mov w2, #0x20
+   [LIVE ASM] 0x72758d362c: bl #0x72758a4258
+   [LIVE ASM] 0x72758d3630: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d3634: mov x1, x19
+   [LIVE ASM] 0x72758d3638: bl #0x72758a48c4
+   [LIVE ASM] 0x72758d363c: add x0, sp, #0x60
+   [LIVE ASM] 0x72758d3640: bl #0x72758a380c
+   [LIVE ASM] 0x72758a380c: cbz x0, #0x72758a3818
+   [LIVE ASM] 0x72758a3810: mov w1, #0x6c
+   [LIVE ASM] 0x72758a3814: b #0x72758bc128
+   [LIVE ASM] 0x72758d3644: add x8, sp, #0x40
+   [LIVE ASM] 0x72758d3648: cmp x20, x8
+   [LIVE ASM] 0x72758d364c: b.ne #0x72758d365c
+   [LIVE ASM] 0x72758d365c: ldp x20, x19, [sp, #0x110]
+   [LIVE ASM] 0x72758d3660: ldp x22, x21, [sp, #0x100]
+   [LIVE ASM] 0x72758d3664: ldp x24, x23, [sp, #0xf0]
+   [LIVE ASM] 0x72758d3668: ldp x30, x25, [sp, #0xe0]
+   [LIVE ASM] 0x72758d366c: ldr x29, [sp, #0xd0]
+   [LIVE ASM] 0x72758d3670: add sp, sp, #0x120
+   [LIVE ASM] 0x72758d3674: ret
+   [LIVE ASM] 0x72758af998: sub x0, x29, #0x68
+   [LIVE ASM] 0x72758af99c: mov w1, #0x40
+   [LIVE ASM] 0x72758af9a0: bl #0x72758bc128
+   [LIVE ASM] 0x72758af9a4: mov w8, #0x2e
+   [LIVE ASM] 0x72758af9a8: sub x2, x29, #8
+   [LIVE ASM] 0x72758af9ac: sub x3, x29, #0x88
+   [LIVE ASM] 0x72758af9b0: mov w4, #0x20
+   [LIVE ASM] 0x72758af9b4: strb w8, [x21], #1
+   [LIVE ASM] 0x72758af9b8: sub x1, x26, x21
+   [LIVE ASM] 0x72758af9bc: mov x0, x21
+   [LIVE ASM] 0x72758af9c0: bl #0x72758ed668
+   [LIVE ASM] 0x72758eda00: ldrb w13, [x3]
+   [LIVE ASM] 0x72758eda04: add x12, x9, #1
+   [LIVE ASM] 0x72758eda08: cmp x12, x4
+   [LIVE ASM] 0x72758eda0c: b.hs #0x72758eda18
+   [LIVE ASM] 0x72758eda10: ldrb w11, [x3, #1]
+   [LIVE ASM] 0x72758eda14: b #0x72758eda1c
+   [LIVE ASM] 0x72758eda1c: lsr x3, x13, #2
+   [LIVE ASM] 0x72758eda20: mov w14, #0xffe6
+   [LIVE ASM] 0x72758eda24: mov x10, x3
+   [LIVE ASM] 0x72758eda28: add w16, w3, #0x41
+   [LIVE ASM] 0x72758eda2c: mov x17, x3
+   [LIVE ASM] 0x72758eda30: mov w15, #0x33
+   [LIVE ASM] 0x72758eda34: and w17, w17, #0xff
+   [LIVE ASM] 0x72758eda38: add w7, w17, w14
+   [LIVE ASM] 0x72758eda3c: sub w17, w15, w17
+   [LIVE ASM] 0x72758eda40: mov w9, #0x19
+   [LIVE ASM] 0x72758eda44: orr w17, w7, w17
+   [LIVE ASM] 0x72758eda48: add w1, w3, #0x47
+   [LIVE ASM] 0x72758eda4c: sub w5, w3, #4
+   [LIVE ASM] 0x72758eda50: sub w10, w9, w10, uxtb
+   [LIVE ASM] 0x72758eda54: mov x6, x3
+   [LIVE ASM] 0x72758eda58: and x5, x5, #0xff
+   [LIVE ASM] 0x72758eda5c: bic w19, w1, w17, lsr #8
+   [LIVE ASM] 0x72758eda60: mov x17, x3
+   [LIVE ASM] 0x72758eda64: bic w7, w16, w10, lsr #8
+   [LIVE ASM] 0x72758eda68: and w1, w6, #0xff
+   [LIVE ASM] 0x72758eda6c: mov w16, #0xffcc
+   [LIVE ASM] 0x72758eda70: mov w10, #0x3d
+   [LIVE ASM] 0x72758eda74: add w6, w1, w16
+   [LIVE ASM] 0x72758eda78: sub w20, w10, w1
+   [LIVE ASM] 0x72758eda7c: and w22, w17, #0xff
+   [LIVE ASM] 0x72758eda80: mov w17, #0xffc2
+   [LIVE ASM] 0x72758eda84: mov w1, #0x3e
+   [LIVE ASM] 0x72758eda88: add w23, w22, w17
+   [LIVE ASM] 0x72758eda8c: sub w22, w1, w22
+   [LIVE ASM] 0x72758eda90: orr w6, w6, w20
+   [LIVE ASM] 0x72758eda94: orr w20, w23, w22
+   [LIVE ASM] 0x72758eda98: mov w21, #0x2b
+   [LIVE ASM] 0x72758eda9c: orr w7, w19, w7
+   [LIVE ASM] 0x72758edaa0: bic w19, w5, w6, lsr #8
+   [LIVE ASM] 0x72758edaa4: bic w5, w21, w20, lsr #8
+   [LIVE ASM] 0x72758edaa8: orr w7, w7, w5
+   [LIVE ASM] 0x72758edaac: and w6, w3, #0xff
+   [LIVE ASM] 0x72758edab0: mov w3, #0xffc1
+   [LIVE ASM] 0x72758edab4: mov w5, #0x3f
+   [LIVE ASM] 0x72758edab8: add w21, w6, w3
+   [LIVE ASM] 0x72758edabc: sub w6, w5, w6
+   [LIVE ASM] 0x72758edac0: orr w21, w21, w6
+   [LIVE ASM] 0x72758edac4: mov w20, #0x2f
+   [LIVE ASM] 0x72758edac8: lsr w6, w11, #4
+   [LIVE ASM] 0x72758edacc: bfi w6, w13, #4, #2
+   [LIVE ASM] 0x72758edad0: orr w13, w7, w19
+   [LIVE ASM] 0x72758edad4: bic w7, w20, w21, lsr #8
+   [LIVE ASM] 0x72758edad8: mov x19, x6
+   [LIVE ASM] 0x72758edadc: orr w13, w13, w7
+   [LIVE ASM] 0x72758edae0: add w7, w6, #0x41
+   [LIVE ASM] 0x72758edae4: mov x21, x6
+   [LIVE ASM] 0x72758edae8: mov w20, #0x2b
+   [LIVE ASM] 0x72758edaec: mov w22, #0x2f
+   [LIVE ASM] 0x72758edaf0: cmp x12, x4
+   [LIVE ASM] 0x72758edaf4: strb w13, [x8]
+   [LIVE ASM] 0x72758edaf8: and w21, w21, #0xff
+   [LIVE ASM] 0x72758edafc: sub w13, w9, w19, uxtb
+   [LIVE ASM] 0x72758edb00: add w14, w21, w14
+   [LIVE ASM] 0x72758edb04: sub w15, w15, w21
+   [LIVE ASM] 0x72758edb08: add w19, w6, #0x47
+   [LIVE ASM] 0x72758edb0c: orr w14, w14, w15
+   [LIVE ASM] 0x72758edb10: mov x15, x6
+   [LIVE ASM] 0x72758edb14: bic w13, w7, w13, lsr #8
+   [LIVE ASM] 0x72758edb18: sub w7, w6, #4
+   [LIVE ASM] 0x72758edb1c: and w15, w15, #0xff
+   [LIVE ASM] 0x72758edb20: bic w14, w19, w14, lsr #8
+   [LIVE ASM] 0x72758edb24: and x7, x7, #0xff
+   [LIVE ASM] 0x72758edb28: mov x19, x6
+   [LIVE ASM] 0x72758edb2c: add w16, w15, w16
+   [LIVE ASM] 0x72758edb30: sub w15, w10, w15
+   [LIVE ASM] 0x72758edb34: orr w13, w14, w13
+   [LIVE ASM] 0x72758edb38: orr w14, w16, w15
+   [LIVE ASM] 0x72758edb3c: and w15, w19, #0xff
+   [LIVE ASM] 0x72758edb40: add w16, w15, w17
+   [LIVE ASM] 0x72758edb44: sub w15, w1, w15
+   [LIVE ASM] 0x72758edb48: orr w15, w16, w15
+   [LIVE ASM] 0x72758edb4c: and w16, w6, #0xff
+   [LIVE ASM] 0x72758edb50: add w17, w16, w3
+   [LIVE ASM] 0x72758edb54: sub w16, w5, w16
+   [LIVE ASM] 0x72758edb58: bic w14, w7, w14, lsr #8
+   [LIVE ASM] 0x72758edb5c: bic w15, w20, w15, lsr #8
+   [LIVE ASM] 0x72758edb60: orr w16, w17, w16
+   [LIVE ASM] 0x72758edb64: orr w14, w14, w15
+   [LIVE ASM] 0x72758edb68: orr w13, w13, w14
+   [LIVE ASM] 0x72758edb6c: bic w14, w22, w16, lsr #8
+   [LIVE ASM] 0x72758edb70: orr w14, w13, w14
+   [LIVE ASM] 0x72758edb74: mov w13, #0x3d
+   [LIVE ASM] 0x72758edb78: strb w14, [x8, #1]
+   [LIVE ASM] 0x72758edb7c: b.hs #0x72758edc1c
+   [LIVE ASM] 0x72758edb80: ubfiz w14, w11, #2, #4
+   [LIVE ASM] 0x72758edb84: mov w12, #0x41
+   [LIVE ASM] 0x72758edb88: mov x13, x14
+   [LIVE ASM] 0x72758edb8c: bfi w12, w11, #2, #4
+   [LIVE ASM] 0x72758edb90: mov x11, x14
+   [LIVE ASM] 0x72758edb94: fmov s0, w11
+   [LIVE ASM] 0x72758edb98: add w15, w14, #0x47
+   [LIVE ASM] 0x72758edb9c: mov x16, x14
+   [LIVE ASM] 0x72758edba0: sub w17, w14, #4
+   [LIVE ASM] 0x72758edba4: mov v0.s[1], w16
+   [LIVE ASM] 0x72758edba8: and x11, x17, #0xfc
+   [LIVE ASM] 0x72758edbac: mov x17, x14
+   [LIVE ASM] 0x72758edbb0: fmov s2, w15
+   [LIVE ASM] 0x72758edbb4: mov w16, #0x2b
+   [LIVE ASM] 0x72758edbb8: adrp x15, #0x727587e000
+   [LIVE ASM] 0x72758edbbc: mov v0.s[2], w17
+   [LIVE ASM] 0x72758edbc0: adrp x17, #0x727587e000
+   [LIVE ASM] 0x72758edbc4: mov v2.s[1], w11
+   [LIVE ASM] 0x72758edbc8: movi v1.2d, #0x0000ff000000ff
+   [LIVE ASM] 0x72758edbcc: ldr q3, [x15, #0x60]
+   [LIVE ASM] 0x72758edbd0: mov w11, #0x2f
+   [LIVE ASM] 0x72758edbd4: mov v0.s[3], w14
+   [LIVE ASM] 0x72758edbd8: ldr q4, [x17, #0x290]
+   [LIVE ASM] 0x72758edbdc: mov v2.s[2], w16
+   [LIVE ASM] 0x72758edbe0: sub w9, w9, w13, uxtb
+   [LIVE ASM] 0x72758edbe4: and v0.16b, v0.16b, v1.16b
+   [LIVE ASM] 0x72758edbe8: bic w9, w12, w9, lsr #8
+   [LIVE ASM] 0x72758edbec: add v1.4s, v0.4s, v3.4s
+   [LIVE ASM] 0x72758edbf0: sub v0.4s, v4.4s, v0.4s
+   [LIVE ASM] 0x72758edbf4: mov v2.s[3], w11
+   [LIVE ASM] 0x72758edbf8: orr v0.16b, v1.16b, v0.16b
+   [LIVE ASM] 0x72758edbfc: ushr v0.4s, v0.4s, #8
+   [LIVE ASM] 0x72758edc00: bic v0.16b, v2.16b, v0.16b
+   [LIVE ASM] 0x72758edc04: ext v1.16b, v0.16b, v0.16b, #8
+   [LIVE ASM] 0x72758edc08: orr v0.8b, v0.8b, v1.8b
+   [LIVE ASM] 0x72758edc0c: mov w11, v0.s[1]
+   [LIVE ASM] 0x72758edc10: fmov w12, s0
+   [LIVE ASM] 0x72758edc14: orr w9, w12, w9
+   [LIVE ASM] 0x72758edc18: orr w13, w9, w11
+   [LIVE ASM] 0x72758edc1c: add x9, x8, #4
+   [LIVE ASM] 0x72758edc20: strb w13, [x8, #2]
+   [LIVE ASM] 0x72758edc24: strb w10, [x8, #3]
+   [LIVE ASM] 0x72758edc28: mov x8, x9
+   [LIVE ASM] 0x72758edc2c: sub x9, x8, x0
+   [LIVE ASM] 0x72758edc30: mov w0, wzr
+   [LIVE ASM] 0x72758edc34: str x9, [x2]
+   [LIVE ASM] 0x72758edc38: strb wzr, [x8]
+   [LIVE ASM] 0x72758edc3c: ldp x20, x19, [sp, #0x40]
+   [LIVE ASM] 0x72758edc40: ldp x22, x21, [sp, #0x30]
+   [LIVE ASM] 0x72758edc44: ldp x24, x23, [sp, #0x20]
+   [LIVE ASM] 0x72758edc48: ldp x26, x25, [sp, #0x10]
+   [LIVE ASM] 0x72758edc4c: ldr x27, [sp], #0x50
+   [LIVE ASM] 0x72758edc50: ret
+   [LIVE ASM] 0x72758af9c4: ldur x8, [x29, #-8]
+   [LIVE ASM] 0x72758af9c8: cbz x8, #0x72758afa28
+   [LIVE ASM] 0x72758af9cc: mov w10, #0x5f
+   [LIVE ASM] 0x72758af9d0: mov w11, #0x2d
+   [LIVE ASM] 0x72758af9d4: mov x12, x21
+   [LIVE ASM] 0x72758af9d8: mov x9, x8
+   [LIVE ASM] 0x72758af9dc: ldur x22, [x29, #-0x90]
+   [LIVE ASM] 0x72758af9e0: b #0x72758af9fc
+   [LIVE ASM] 0x72758af9fc: ldrb w13, [x12]
+   [LIVE ASM] 0x72758afa00: cmp w13, #0x3d
+   [LIVE ASM] 0x72758afa04: b.eq #0x72758af9e4
+   [LIVE ASM] 0x72758afa08: cmp w13, #0x2f
+   [LIVE ASM] 0x72758afa0c: b.eq #0x72758afa20
+   [LIVE ASM] 0x72758afa10: cmp w13, #0x2b
+   [LIVE ASM] 0x72758afa14: b.ne #0x72758af9f0
+   [LIVE ASM] 0x72758af9f0: subs x8, x8, #1
+   [LIVE ASM] 0x72758af9f4: add x12, x12, #1
+   [LIVE ASM] 0x72758af9f8: b.eq #0x72758afa30
+   [LIVE ASM] 0x72758af9e4: sub x9, x9, #1
+   [LIVE ASM] 0x72758af9e8: strb wzr, [x12]
+   [LIVE ASM] 0x72758af9ec: stur x9, [x29, #-8]
+   [LIVE ASM] 0x72758af9f0: subs x8, x8, #1
+   [LIVE ASM] 0x72758af9f4: add x12, x12, #1
+   [LIVE ASM] 0x72758af9f8: b.eq #0x72758afa30
+   [LIVE ASM] 0x72758afa30: ldr x8, [x19]
+   [LIVE ASM] 0x72758afa34: strb wzr, [x21, x9]
+   [LIVE ASM] 0x72758afa38: mov x0, x19
+   [LIVE ASM] 0x72758afa3c: mov x1, x20
+   [LIVE ASM] 0x72758afa40: ldr x8, [x8, #0x538]
+   [LIVE ASM] 0x72758afa44: blr x8
+   [LIVE ASM] 0x72758afa48: mov sp, x22
+   [LIVE ASM] 0x72758afa4c: b #0x72758af45c
+   [LIVE ASM] 0x72758af45c: mov sp, x29
+   [LIVE ASM] 0x72758af460: ldp x20, x19, [sp, #0x50]
+   [LIVE ASM] 0x72758af464: ldp x22, x21, [sp, #0x40]
+   [LIVE ASM] 0x72758af468: ldp x24, x23, [sp, #0x30]
+   [LIVE ASM] 0x72758af46c: ldp x26, x25, [sp, #0x20]
+   [LIVE ASM] 0x72758af470: ldp x28, x27, [sp, #0x10]
+   [LIVE ASM] 0x72758af474: ldp x29, x30, [sp], #0x60
+   [LIVE ASM] 0x72758af478: ret
+📤 [ВЫХОД] Метод завершен. Настоящий код стерт протектором.
