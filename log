@@ -1,9 +1,11 @@
-[+] Парадигма: Изолированное выполнение горячей точки на основе живого Snapshot
+=== ЗАПУСК ПАРАМЕТРИЗИРОВАННОГО АВТОНОМНОГО ЭМУЛЯТОРА КРИПТОЯДРА С WBC ===
+[+] Парадигма: Аппаратный обход графа через теневое зеркалирование памяти
 [+] Бинарный код успешно загружен в память эмулятора (540672 байт)
-[+] Выделение оперативной памяти под стек потока: 0x76dd600000
 [+] Реконструкция оригинального криптографического контекста в стеке...
+[+] Активация Shadow Mapping нижней территории (0x0 - 16MB)...
+[+] Теневое зеркало WBC LookUp-матрицы успешно взведено!
 [+] Насыщение аппаратных регистров...
-[+] Запуск выполнения бинарной петли с адреса 0x7782d759f4...
+[+] Аппаратный контекст подготовлен. Запуск сквозного прохода петли с 0x7782d759f4...
    [CPU TRACE] PC: 0x7782d759f4 (offset: 0x759f4) | Opcode: 6300098b
        -> X0: 0x76dd6becc0 | X1: 0xffc1 | X2: 0x76dd6bf438 | X3: 0x76dd6bf340
        -> X4: 0x1b | X5: 0x3f | X6: 0x76dd6bece0 | X7: 0x39
@@ -196,5 +198,272 @@
    [CPU TRACE] PC: 0x7782d75af4 (offset: 0x75af4) | Opcode: 0d010039
        -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
        -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75af8 (offset: 0x75af8) | Opcode: b51e0012
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75afc (offset: 0x75afc) | Opcode: 2d01334b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b00 (offset: 0x75b00) | Opcode: ae020e0b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b04 (offset: 0x75b04) | Opcode: ef01154b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b08 (offset: 0x75b08) | Opcode: d31c0111
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b0c (offset: 0x75b0c) | Opcode: ce010f2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b10 (offset: 0x75b10) | Opcode: ef0306aa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b14 (offset: 0x75b14) | Opcode: ed206d0a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b18 (offset: 0x75b18) | Opcode: c7100051
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x73
+   [CPU TRACE] PC: 0x7782d75b1c (offset: 0x75b1c) | Opcode: ef1d0012
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b20 (offset: 0x75b20) | Opcode: 6e226e0a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b24 (offset: 0x75b24) | Opcode: e71c4092
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b28 (offset: 0x75b28) | Opcode: f30306aa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b2c (offset: 0x75b2c) | Opcode: f001100b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b30 (offset: 0x75b30) | Opcode: 4f010f4b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b34 (offset: 0x75b34) | Opcode: cd010d2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b38 (offset: 0x75b38) | Opcode: 0e020f2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b3c (offset: 0x75b3c) | Opcode: 6f1e0012
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b40 (offset: 0x75b40) | Opcode: f001110b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b44 (offset: 0x75b44) | Opcode: 2f000f4b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b48 (offset: 0x75b48) | Opcode: 0f020f2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b4c (offset: 0x75b4c) | Opcode: d01c0012
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b50 (offset: 0x75b50) | Opcode: 1102030b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b54 (offset: 0x75b54) | Opcode: b000104b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b58 (offset: 0x75b58) | Opcode: ee206e0a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b5c (offset: 0x75b5c) | Opcode: 8f226f0a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b60 (offset: 0x75b60) | Opcode: 3002102a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b64 (offset: 0x75b64) | Opcode: ce010f2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b68 (offset: 0x75b68) | Opcode: ad010e2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b6c (offset: 0x75b6c) | Opcode: ce22700a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b70 (offset: 0x75b70) | Opcode: ae010e2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b74 (offset: 0x75b74) | Opcode: ad078052
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b78 (offset: 0x75b78) | Opcode: 0e050039
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b7c (offset: 0x75b7c) | Opcode: 02050054
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b80 (offset: 0x75b80) | Opcode: 6e0d1e53
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b84 (offset: 0x75b84) | Opcode: 2c088052
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b88 (offset: 0x75b88) | Opcode: ed030eaa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b8c (offset: 0x75b8c) | Opcode: 6c0d1e33
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b90 (offset: 0x75b90) | Opcode: eb030eaa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b94 (offset: 0x75b94) | Opcode: 6001271e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b98 (offset: 0x75b98) | Opcode: cf1d0111
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75b9c (offset: 0x75b9c) | Opcode: f0030eaa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75ba0 (offset: 0x75ba0) | Opcode: d1110051
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75ba4 (offset: 0x75ba4) | Opcode: 001e0c4e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75ba8 (offset: 0x75ba8) | Opcode: 2b167e92
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bac (offset: 0x75bac) | Opcode: f1030eaa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bb0 (offset: 0x75bb0) | Opcode: e201271e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bb4 (offset: 0x75bb4) | Opcode: 70058052
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bb8 (offset: 0x75bb8) | Opcode: 8ffcffb0
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bbc (offset: 0x75bbc) | Opcode: 201e144e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bc0 (offset: 0x75bc0) | Opcode: 91fcffb0
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bc4 (offset: 0x75bc4) | Opcode: 621d0c4e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bc8 (offset: 0x75bc8) | Opcode: 21e6006f
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bcc (offset: 0x75bcc) | Opcode: e319c03d
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bd0 (offset: 0x75bd0) | Opcode: eb058052
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bd4 (offset: 0x75bd4) | Opcode: c01d1c4e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bd8 (offset: 0x75bd8) | Opcode: 24a6c03d
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bdc (offset: 0x75bdc) | Opcode: 021e144e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75be0 (offset: 0x75be0) | Opcode: 29012d4b
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75be4 (offset: 0x75be4) | Opcode: 001c214e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75be8 (offset: 0x75be8) | Opcode: 8921690a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bec (offset: 0x75bec) | Opcode: 0184a34e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bf0 (offset: 0x75bf0) | Opcode: 8084a06e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bf4 (offset: 0x75bf4) | Opcode: 621d1c4e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bf8 (offset: 0x75bf8) | Opcode: 201ca04e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75bfc (offset: 0x75bfc) | Opcode: 0004386f
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c00 (offset: 0x75c00) | Opcode: 401c604e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c04 (offset: 0x75c04) | Opcode: 0140006e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c08 (offset: 0x75c08) | Opcode: 001ca10e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c0c (offset: 0x75c0c) | Opcode: 0b3c0c0e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c10 (offset: 0x75c10) | Opcode: 0c00261e
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c14 (offset: 0x75c14) | Opcode: 8901092a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c18 (offset: 0x75c18) | Opcode: 2d010b2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c1c (offset: 0x75c1c) | Opcode: 09110091
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c20 (offset: 0x75c20) | Opcode: 0d090039
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c24 (offset: 0x75c24) | Opcode: 0a0d0039
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c28 (offset: 0x75c28) | Opcode: e80309aa
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c2c (offset: 0x75c2c) | Opcode: 090100cb
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c30 (offset: 0x75c30) | Opcode: e0031f2a
+       -> X0: 0x76dd6becc0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c34 (offset: 0x75c34) | Opcode: 490000f9
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c38 (offset: 0x75c38) | Opcode: 1f010039
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c3c (offset: 0x75c3c) | Opcode: f44f44a9
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c40 (offset: 0x75c40) | Opcode: f65743a9
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c44 (offset: 0x75c44) | Opcode: f85f42a9
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c48 (offset: 0x75c48) | Opcode: fa6741a9
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c4c (offset: 0x75c4c) | Opcode: fb0745f8
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x7782d75c50 (offset: 0x75c50) | Opcode: c0035fd6
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x0 (offset: 0x-7782d00000) | Opcode: 6579493d
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
+   [CPU TRACE] PC: 0x4 (offset: 0x-7782cffffc) | Opcode: 00a775fe
+       -> X0: 0x0 | X1: 0x3e | X2: 0x76dd6bf438 | X3: 0xffc1
+       -> X4: 0x1b | X5: 0x3f | X6: 0x32 | X7: 0x2e
 
-[-] Критическая ошибка рантайма процессора ARM64: Invalid memory write (UC_ERR_WRITE_UNMAPPED)
+[-] Критическая ошибка рантайма процессора ARM64: Unhandled CPU exception (UC_ERR_EXCEPTION)
