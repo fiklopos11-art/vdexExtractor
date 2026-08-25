@@ -1,1 +1,868 @@
-ы
+
+
+class ConnectionConfig:
+    DEFAULT_TIMEOUT = 10
+    SOCKET_TIMEOUT = 3
+    NEWLINE_TIMEOUT = 5
+    MAX_RECONNECT_ATTEMPTS = 3
+    RECONNECT_DELAY = 3
+    BUFFER_SIZE = 4096
+    LISTEN_TIMEOUT = 40
+    MAX_EMPTY_MESSAGES = 1500
+    MAX_BROKEN_DATA_ATTEMPTS = 1000
+    MAX_CONNECT_ATTEMPTS = 3  # Количество попыток подключения
+    CONNECT_RETRY_DELAY = 3   # Задержка между попытками (сек)
+
+class ConnectionConfig:
+    DEFAULT_TIMEOUT = 10
+    SOCKET_TIMEOUT = 3
+    NEWLINE_TIMEOUT = 5
+    MAX_RECONNECT_ATTEMPTS = 3
+    RECONNECT_DELAY = 3
+    BUFFER_SIZE = 4096
+    LISTEN_TIMEOUT = 40
+    MAX_EMPTY_MESSAGES = 1500
+    MAX_BROKEN_DATA_ATTEMPTS = 1000
+    MAX_CONNECT_ATTEMPTS = 3
+    CONNECT_RETRY_DELAY = 3
+
+
+@dataclass
+class ProxyConfig:
+    """Proxy configuration"""
+    host: str
+    port: int
+    username: Optional[str] = None
+    password: Optional[str] = None
+    use_ssl: bool = False
+    verify_ssl: bool = True
+
+    @classmethod
+    def from_string(cls, proxy_str: str) -> 'ProxyConfig':
+        """Parse proxy string in format: [scheme://][username:password@]host:port"""
+        use_ssl = False
+        if proxy_str.startswith("https://"):
+            use_ssl = True
+            proxy_str = proxy_str[8:]
+        elif proxy_str.startswith("http://"):
+            use_ssl = False
+            proxy_str = proxy_str[7:]
+
+        # Поддержка формата user:pass@host:port
+        if "@" in proxy_str:
+            auth, host_port = proxy_str.split("@", 1)
+            username, password = auth.split(":", 1)
+            host, port = host_port.split(":", 1)
+            return cls(host=host, port=int(port), username=username, password=password, use_ssl=use_ssl)
+
+        # Поддержка старого формата username:password:host:port
+        parts = proxy_str.split(":")
+        if len(parts) == 4:
+            return cls(host=parts[2], port=int(parts[3]), username=parts[0], password=parts[1], use_ssl=use_ssl)
+        elif len(parts) == 2:
+            return cls(host=parts[0], port=int(parts[1]), use_ssl=use_ssl)
+        else:
+            raise ValueError(f"Invalid proxy format: {proxy_str}")
+
+    @property
+    def requires_ssl(self) -> bool:
+        """Check if SSL is required based on explicit scheme or port"""
+        return self.use_ssl or self.port in (443, 8443)
+
+
+class SocketConnectionError(Exception):
+    pass
+
+
+class SocketTimeoutError(SocketConnectionError):
+    pass
+
+
+class ProxyConnectionError(SocketConnectionError):
+    pass
+
+
+class ServerConnectionError(SocketConnectionError):
+    pass
+
+
+class TLSSocketAdapter:
+    """
+    Адаптер для реализации 'TLS внутри TLS'.
+    Использует MemoryBIO и потокобезопасные блокировки для предотвращения
+    повреждения внутреннего состояния OpenSSL при асинхронном чтении/записи.
+    """
+
+    def __init__(self, raw_socket: socket.socket, ssl_obj: ssl.SSLObject, in_bio: ssl.MemoryBIO,
+                 out_bio: ssl.MemoryBIO):
+        self.raw_socket = raw_socket
+        self.ssl_obj = ssl_obj
+        self.in_bio = in_bio
+        self.out_bio = out_bio
+        self._bio_lock = threading.Lock()  # ЗАМОК ДЛЯ ПОТОКОБЕЗОПАСНОСТИ
+
+    def settimeout(self, timeout):
+        self.raw_socket.settimeout(timeout)
+
+    def _flush_out(self):
+        """Отправляет зашифрованные данные из буфера в реальный сокет. (Вызывать под _bio_lock!)"""
+        while True:
+            data = self.out_bio.read()
+            if not data:
+                break
+            self.raw_socket.sendall(data)
+
+    def send(self, data: bytes) -> int:
+        with self._bio_lock:
+            while True:
+                try:
+                    written = self.ssl_obj.write(data)
+                    self._flush_out()
+                    return written
+                except ssl.SSLWantReadError:
+                    self._flush_out()
+                    break  # Выходим из блокировки, нужно читать сеть (редкий случай для TLS)
+
+        # Если дошли сюда, нужно вычитать сеть без блокировки других потоков
+        try:
+            raw_data = self.raw_socket.recv(4096)
+            if not raw_data:
+                raise ssl.SSLError("Connection closed while sending")
+            with self._bio_lock:
+                self.in_bio.write(raw_data)
+        except socket.timeout:
+            raise socket.timeout("Send timeout")
+
+        return self.send(data)
+
+    def recv(self, bufsize: int) -> bytes:
+        while True:
+            with self._bio_lock:
+                try:
+                    data = self.ssl_obj.read(bufsize)
+                    self._flush_out()
+                    return data
+                except ssl.SSLWantReadError:
+                    self._flush_out()
+                    # Нет расшифрованных данных, нужно вычитать из сети (выходим из блока with)
+
+            # Читаем из сети БЕЗ блокировки, чтобы send() из главного потока мог работать!
+            try:
+                raw_data = self.raw_socket.recv(4096)
+                if not raw_data:
+                    return b""
+                with self._bio_lock:
+                    self.in_bio.write(raw_data)
+            except socket.timeout:
+                raise socket.timeout("Receive timeout")
+
+    def close(self):
+        try:
+            self.raw_socket.close()
+        except:
+            pass
+
+    def shutdown(self, how):
+        try:
+            self.raw_socket.shutdown(how)
+        except:
+            pass
+
+class SocketConnection:
+    """Handles low-level socket operations with TLS support"""
+
+    def __init__(self, tag: str, proxy_config: Optional[ProxyConfig] = None, use_tls: bool = True):
+        self.tag = tag
+        self.proxy_config = proxy_config
+        self.use_tls = use_tls
+        self.socket = None
+        self._lock = threading.Lock()
+
+    def connect(self, host: str, port: int) -> None:
+        with self._lock:
+            self.close()
+            last_error = None
+
+            for attempt in range(1, ConnectionConfig.MAX_CONNECT_ATTEMPTS + 1):
+                try:
+                    logger.info(f"[{self.tag}] Connection attempt {attempt}/{ConnectionConfig.MAX_CONNECT_ATTEMPTS}")
+
+                    self.socket = self._connect_via_proxy(host, port)
+
+                    self.socket.settimeout(ConnectionConfig.SOCKET_TIMEOUT)
+
+                    self.real_host = host
+                    self.real_port = port
+
+
+                    logger.info(f"[{self.tag}] Connected to {host}:{port}")
+                    return
+
+                except Exception as e:
+                    last_error = ServerConnectionError(str(e))
+                    logger.warning(f"[{self.tag}] Attempt {attempt} failed: {e}")
+
+                if self.socket:
+                    try:
+                        self.socket.close()
+                    except:
+                        pass
+                    self.socket = None
+
+                if attempt < ConnectionConfig.MAX_CONNECT_ATTEMPTS:
+                    time.sleep(ConnectionConfig.CONNECT_RETRY_DELAY)
+
+            raise last_error if last_error else ServerConnectionError("Connection failed")
+
+    def _get_ssl_context(self, verify: bool = True) -> ssl.SSLContext:
+        context = ssl.create_default_context()
+        if not verify:
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        return context
+
+    def _connect_direct(self, host: str, port: int) -> socket.socket:
+        logger.info(f"[{self.tag}] Direct connection to {host}:{port} (TLS: {self.use_tls})")
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(ConnectionConfig.DEFAULT_TIMEOUT)
+        sock.connect((host, port))
+
+        if self.use_tls:
+            context = self._get_ssl_context(verify=False)
+            sock = context.wrap_socket(sock, server_hostname=host)
+            logger.info(f"[{self.tag}] TLS handshake successful")
+
+        return sock
+
+    def _wrap_tls_in_tls(self, sock: socket.socket, target_host: str) -> TLSSocketAdapter:
+        """Специальная обертка для работы TLS внутри уже зашифрованного туннеля HTTPS прокси"""
+        context = self._get_ssl_context(verify=False)
+        in_bio = ssl.MemoryBIO()
+        out_bio = ssl.MemoryBIO()
+        ssl_obj = context.wrap_bio(in_bio, out_bio, server_hostname=target_host)
+
+        adapter = TLSSocketAdapter(sock, ssl_obj, in_bio, out_bio)
+
+        # Рукопожатие (Handshake) с потокобезопасностью
+        while True:
+            with adapter._bio_lock:
+                try:
+                    ssl_obj.do_handshake()
+                    adapter._flush_out()
+                    break
+                except ssl.SSLWantReadError:
+                    adapter._flush_out()
+
+            # Читаем из сети без лока
+            try:
+                raw_data = sock.recv(4096)
+                if not raw_data:
+                    raise ssl.SSLError("Connection closed by proxy during inner TLS handshake")
+                with adapter._bio_lock:
+                    in_bio.write(raw_data)
+            except socket.timeout:
+                raise socket.timeout("Inner TLS handshake timeout")
+
+        return adapter
+
+
+    def _connect_via_proxy(self, target_host: str, target_port: int) -> socket.socket:
+        logger.info(f"[{self.tag}] Connecting via proxy {self.proxy_config.host}:{self.proxy_config.port}")
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(ConnectionConfig.DEFAULT_TIMEOUT)
+
+        # 1. Подключение к прокси
+        if self.proxy_config.requires_ssl:
+            proxy_context = self._get_ssl_context(verify=self.proxy_config.verify_ssl)
+            sock.connect((self.proxy_config.host, self.proxy_config.port))
+            sock = proxy_context.wrap_socket(sock, server_hostname=self.proxy_config.host)
+        else:
+            sock.connect((self.proxy_config.host, self.proxy_config.port))
+
+        # 2. Туннель
+        self._send_connect_request(sock, target_host, target_port)
+        self._verify_connect_response(sock)
+        logger.info(f"[{self.tag}] Proxy tunnel established to {target_host}:{target_port}")
+
+        # 3. Защита соединения с ИГРОВЫМ СЕРВЕРОМ
+        if self.use_tls:
+            logger.info(f"[{self.tag}] Starting TLS handshake with target server over proxy tunnel...")
+            try:
+                if self.proxy_config.requires_ssl:
+                    # Используем безопасный адаптер, чтобы обойти баг извлечения fileno в Python!
+                    sock = self._wrap_tls_in_tls(sock, target_host)
+                else:
+                    # Обычная обертка если сам прокси не зашифрован
+                    target_context = self._get_ssl_context(verify=False)
+                    sock = target_context.wrap_socket(sock, server_hostname=target_host)
+
+                logger.info(f"[{self.tag}] Target TLS handshake successful")
+            except Exception as e:
+                raise ProxyConnectionError(
+                    f"TLS handshake with target failed (Proxy might block port {target_port}): {e}")
+
+        return sock
+
+    def _send_connect_request(self, sock: socket.socket, host: str, port: int) -> None:
+        """Отправка HTTP/1.1 CONNECT. HTTP/1.1 безопаснее, так как поддерживает Keep-Alive"""
+        request_lines = [
+            f"CONNECT {host}:{port} HTTP/1.1",
+            f"Host: {host}:{port}",
+            "Proxy-Connection: keep-alive",
+            "Connection: keep-alive",
+            "User-Agent: Mozilla/5.0"
+        ]
+
+        if self.proxy_config.username and self.proxy_config.password:
+            credentials = f"{self.proxy_config.username}:{self.proxy_config.password}"
+            encoded = base64.b64encode(credentials.encode()).decode()
+            request_lines.append(f"Proxy-Authorization: Basic {encoded}")
+
+        # Надежно закрываем заголовки двойным переносом строки
+        request = "\r\n".join(request_lines) + "\r\n\r\n"
+
+        sock.sendall(request.encode())
+
+    def _verify_connect_response(self, sock: socket.socket) -> None:
+        response = b""
+        while b"\r\n\r\n" not in response:
+            try:
+                chunk = sock.recv(1)
+                if not chunk:
+                    raise ProxyConnectionError("Proxy closed connection during CONNECT phase")
+                response += chunk
+            except socket.timeout:
+                raise ProxyConnectionError("Timeout while waiting for proxy CONNECT response")
+
+        headers_str = response.decode('utf-8', errors='ignore')
+        status_line = headers_str.split('\r\n')[0]
+
+        logger.debug(f"[{self.tag}] Proxy response: {status_line}")
+
+        if " 200 " not in status_line:
+            raise ProxyConnectionError(f"Proxy returned error: {status_line}")
+        logger.debug(f"[{self.tag}] Proxy tunnel established cleanly")
+
+    def send(self, data: bytes) -> None:
+        if not self.socket:
+            raise SocketConnectionError("Socket not connected")
+        try:
+            self.socket.send(data)
+        except socket.error as e:
+            raise SocketConnectionError(f"Send failed: {e}")
+
+    def receive(self, buffer_size: int = ConnectionConfig.BUFFER_SIZE) -> bytes:
+        if not self.socket:
+            raise SocketConnectionError("Socket not connected")
+        try:
+            chunk = self.socket.recv(buffer_size)
+            if not chunk:
+                raise SocketConnectionError("Connection closed by peer")
+            return chunk
+        except socket.timeout:
+            raise SocketTimeoutError("Receive timeout")
+        except socket.error as e:
+            raise SocketConnectionError(f"Receive failed: {e}")
+
+    def close(self) -> None:
+        if self.socket:
+            try:
+                self.socket.shutdown(socket.SHUT_RDWR)
+            except Exception:
+                pass
+            finally:
+                try:
+                    self.socket.close()
+                except Exception:
+                    pass
+                self.socket = None
+
+    def is_connected(self) -> bool:
+        return self.socket is not None
+
+
+class MessageParser:
+    """Parses incoming messages"""
+
+    @staticmethod
+    def parse(line: bytes) -> Dict[str, Any]:
+        """Parse message line into dictionary"""
+        try:
+            message_str = line.decode('utf-8').strip()
+            if not message_str:
+                return {'command': ''}
+
+            # Find JSON part
+            json_start = message_str.find('{')
+
+            if json_start != -1:
+                command = message_str[:json_start].strip()
+                json_str = message_str[json_start:]
+
+                try:
+                    message = json.loads(json_str)
+                    # Normalize boolean values
+                    if 'new' in message and isinstance(message['new'], str):
+                        message['new'] = message['new'].lower() == 'true'
+                except json.JSONDecodeError:
+                    logger.warning(f"Invalid JSON: {json_str}")
+                    message = {}
+                    command = message_str
+            else:
+                message = {}
+                command = message_str
+
+            message['command'] = command
+            return message
+
+        except Exception as e:
+            logger.error(f"Error parsing message: {e}")
+            return {'command': 'error', 'error': str(e)}
+
+
+class ServerManager:
+    API_URL = "https://static.rstgames.ru/durak/"
+    TIMEOUT = (5, 10)
+
+    @classmethod
+    def _get_session(cls) -> requests.Session:
+        """Создаёт сессию с retry-политикой"""
+        session = requests.Session()
+        retry = Retry(
+            total=3,
+            backoff_factor=0.5,
+            status_forcelist=[500, 502, 503, 504],
+            raise_on_status=False,
+            connect=3,           # Retry при ошибках соединения
+            read=3,              # Retry при ошибках чтения (Read timed out)
+            allowed_methods=["GET", "POST"],  # Для каких методов разрешён retry
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        return session
+
+    @classmethod
+    def get_servers(cls) -> Dict[str, Any]:
+        # return config_servers
+        """Fetch server list from API with retry"""
+        try:
+            session = cls._get_session()
+            response = session.get(
+                f"{cls.API_URL}servers.json",
+                timeout=cls.TIMEOUT
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.Timeout:
+            raise ServerConnectionError("Request timed out after all retries")
+        except requests.RequestException as e:
+            raise ServerConnectionError(f"Failed to fetch servers: {e}")
+
+    @classmethod
+    def get_server_info(cls, server_id: Optional['Server'] = None, platform = "android") -> tuple[str, int]:
+        """Get IP and port for specified server"""
+        servers = cls.get_servers()["user"]
+
+        if server_id is not None:
+            server = servers.get(server_id)
+            if not server:
+                raise ValueError(f"Server {server_id} not found")
+        else:
+            server = random.choice(list(servers.values()))
+
+        return server["host"], server[f"tls_{platform}"]
+
+import hmac
+
+
+class SocketListener:
+    """Main class for socket communication with auto-reconnect"""
+
+    def __init__(self, client, proxy: str = "", tag: str = "", debug: bool = False):
+        self._closed: bool = False
+        self._connected: bool = False
+        self.client = client
+        self.tag = tag
+        self.debug = debug
+
+        # Setup proxy
+        self.proxy_config = ProxyConfig.from_string(proxy) if proxy else None
+        # Connection management (ВКЛЮЧЕН TLS)
+        self.connection = SocketConnection(tag, self.proxy_config, use_tls=True)
+        self.alive = False
+        self.do_commands = True
+
+        # Message handling
+        self.message_queue: queue.Queue = queue.Queue()
+        self.handlers: Dict[str, List[Callable]] = {}
+
+        # Reconnection management
+        self.current_reconnect_attempts = 0
+        self.last_newline_time = time.time()
+
+        # Threading
+        self._lock = threading.Lock()
+        self.logger = logger
+
+        self._shutdown_event = threading.Event()
+        self._receiver_thread: Optional[threading.Thread] = None
+        self._closed = False
+        self.platform = None
+
+    def create_connection(
+            self,
+            server_id: Optional['Server'] = None,
+            ip: Optional[str] = None,
+            port: Optional[int] = None,
+            platform: Optional[str] = "android",
+    ) -> None:
+        """Create new connection to server"""
+        # Get server info if not provided
+        self.platform = platform
+        if port is None:
+            try:
+                ip, port = ServerManager.get_server_info(server_id, platform=self.platform)
+                if hasattr(self.client, 'game'):
+                    self.client.game.server_id = server_id
+            except Exception as e:
+                logger.error(f"[{self.tag}] Failed to get server info: {e}")
+                self._handle_error(e)
+                return
+        else:
+            try:
+                ip, port1 = ServerManager.get_server_info(server_id, platform=self.platform)
+
+                if hasattr(self.client, 'game'):
+                    self.client.game.server_id = server_id
+            except Exception as e:
+                logger.error(f"[{self.tag}] Failed to get server info: {e}")
+                self._handle_error(e)
+                return
+        # Establish connection
+        try:
+            self.connection.connect(ip, port)
+            self.alive = True
+            self._shutdown_event.clear()
+            self.current_reconnect_attempts = 0
+
+            # Start message receiver thread
+            self._receiver_thread = threading.Thread(
+                target=self._receive_messages,
+                daemon=True,
+                name=f"SocketReceiver-{self.tag}"
+            )
+            self._receiver_thread.start()
+        except SocketConnectionError as e:
+            logger.error(f"[{self.tag}] Connection failed: {e}")
+            self._handle_error(e)
+
+    def send_server_v2(self, data: str):
+        try:
+            self.connection.send(data.encode())
+        except Exception as e:
+            logger.error(f"[{self.tag}] Send failed: {e}")
+            self._handle_error(e)
+
+    def send_server(self, data: Dict[str, Any]) -> None:
+        """Send message to server"""
+        try:
+            logger.debug(f"[{self.tag}] Sending: {data}")
+
+            data_copy = data.copy()
+
+            command = data_copy.pop('command', '')
+            json_data = json.dumps(data_copy, separators=(',', ':'))
+
+            # Remove empty JSON objects
+            if json_data == '{}':
+                json_data = ''
+
+            message = f"{command}{json_data}\n"
+
+            self.connection.send(message.encode())
+
+        except Exception as e:
+            logger.error(f"[{self.tag}] Send failed: {e}")
+            self._handle_error(e)
+
+    def send_raw(self, data: str) -> None:
+        """Send raw string data"""
+        try:
+            self.connection.send(data.encode())
+        except Exception as e:
+            self._handle_error(e)
+
+    def listen(self, timeout: Optional[float] = ConnectionConfig.LISTEN_TIMEOUT) -> Optional[Dict[str, Any]]:
+        """Wait for and return next message from queue"""
+        try:
+            message = self.message_queue.get(timeout=timeout)
+            self.current_reconnect_attempts = 0
+            return message
+
+        except queue.Empty:
+            logger.warning(f"[{self.tag}] Listen timeout, reconnecting...")
+            if not self._reconnect():
+                self.alive = False
+            return None
+
+        except Exception as e:
+            logger.error(f"[{self.tag}] Listen error: {e}")
+            if not self._reconnect():
+                self.alive = False
+            return None
+
+    def wait_for_command(self, command: str) -> Optional[Dict[str, Any]]:
+        """Wait for specific command, handling errors and alerts"""
+        empty_count = 0
+        broken_count = 0
+
+        while True:
+            if (broken_count > ConnectionConfig.MAX_BROKEN_DATA_ATTEMPTS or
+                    empty_count > ConnectionConfig.MAX_EMPTY_MESSAGES):
+                logger.error(
+                    f"[{self.tag}] Failed to get data: "
+                    f"broken={broken_count}, empty={empty_count}"
+                )
+                return None
+
+            data = self.listen()
+
+            if data is None:
+                broken_count += 1
+                logger.debug(f"[{self.tag}] Broken data attempt {broken_count}")
+                continue
+
+            cmd = data.get('command', '')
+
+            if not cmd:
+                empty_count += 1
+                logger.debug(f"[{self.tag}] Empty message {empty_count}")
+                continue
+
+            if cmd in [command, "err", "error", "alert"]:
+                return data
+
+            # Reset counters on valid data
+            empty_count = 0
+            broken_count = 0
+
+    def event(self, command: str = "all") -> Callable:
+        """Decorator to register event handler"""
+
+        def register_handler(handler: Callable) -> Callable:
+            if command not in self.handlers:
+                self.handlers[command] = []
+            self.handlers[command].append(handler)
+            return handler
+
+        return register_handler
+
+    def on_error(self, handler: Callable) -> Callable:
+        """Register error handler"""
+        self.handlers["error"] = [handler]
+        return handler
+
+    def _receive_messages(self) -> None:
+        """Main message receiving loop (runs in separate thread)"""
+        logger.debug(f"[{self.tag}] Message receiver started")
+        buffer = b""
+        self.last_newline_time = time.time()
+
+        while self.alive and not self._shutdown_event.is_set():
+            try:
+                # Check for newline timeout
+                if time.time() - self.last_newline_time > ConnectionConfig.NEWLINE_TIMEOUT:
+                    logger.warning(
+                        f"[{self.tag}] No newline for "
+                        f"{ConnectionConfig.NEWLINE_TIMEOUT}s, reconnecting..."
+                    )
+                    if self._reconnect():
+                        buffer = b""
+                        self.last_newline_time = time.time()
+                    continue
+
+                # Receive data
+                try:
+                    chunk = self.connection.receive()
+                except SocketTimeoutError:
+                    continue  # Timeout is OK, just check conditions and wait again
+                except SocketConnectionError as e:
+                    logger.error(f"[{self.tag}] Connection lost/closed: {e}")
+                    if self._reconnect():
+                        buffer = b""
+                    continue
+
+                buffer += chunk
+
+                # Update newline timestamp
+                if b'\n' in chunk:
+                    self.last_newline_time = time.time()
+
+                # Process complete lines
+                lines = buffer.split(b'\n')
+                buffer = lines.pop()  # Keep incomplete line in buffer
+
+                for line in lines:
+                    self._process_message(line)
+
+            except Exception as e:
+                if self._shutdown_event.is_set():
+                    break
+                logger.error(f"[{self.tag}] Unexpected error in receiver: {e}")
+                time.sleep(1) # Защита от 100% CPU при непредвиденных зацикленных ошибках
+
+        logger.debug(f"[{self.tag}] Message receiver stopped")
+
+    def _process_message(self, line: bytes) -> None:
+        """Process single message line"""
+        try:
+            message = MessageParser.parse(line)
+
+            if not message.get('command'):
+                self.message_queue.put({'command': ''})
+                return
+
+            logger.debug(f"[{self.tag}] Received: {message}")
+
+            # Add to queue
+            self.message_queue.put(message)
+
+            # Call handlers
+            command = message['command']
+            for handler_key in ['all', command]:
+                for handler in self.handlers.get(handler_key, []):
+                    try:
+                        handler(message)
+                    except Exception as e:
+                        logger.error(f"[{self.tag}] Handler error: {e}")
+
+            # Clear queue on game over
+            if command == 'game_over':
+                with self.message_queue.mutex:
+                    self.message_queue.queue.clear()
+
+        except Exception as e:
+            logger.error(f"[{self.tag}] Error processing message: {e}")
+
+    def _reconnect(self) -> bool:
+        """Attempt to reconnect to server"""
+        with self._lock:
+            self.alive = False
+
+            if self.current_reconnect_attempts >= ConnectionConfig.MAX_RECONNECT_ATTEMPTS:
+                logger.error(f"[{self.tag}] Max reconnect attempts reached")
+                self.do_commands = False
+                return False
+
+            # Задержка только для повторных попыток (2-я и 3-я)
+            if self.current_reconnect_attempts > 0:
+                logger.info(f"[{self.tag}] Waiting {ConnectionConfig.RECONNECT_DELAY}s before retry...")
+                time.sleep(ConnectionConfig.RECONNECT_DELAY)
+
+            self.current_reconnect_attempts += 1
+            logger.info(
+                f"[{self.tag}] Reconnecting "
+                f"({self.current_reconnect_attempts}/{ConnectionConfig.MAX_RECONNECT_ATTEMPTS})..."
+            )
+
+            # Close old connection
+            self.connection.close()
+
+            try:
+                # Get server info
+                server_id = getattr(self.client.game, 'server_id', None)
+                ip, port = ServerManager.get_server_info(server_id, platform=self.client.authorization.platform)
+
+                # Reconnect
+                self.connection.connect(ip, port)
+
+                # Re-authenticate
+                if hasattr(self.client, 'authorization'):
+                    self.client.authorization.get_session_key(self.client.authorization.c_packet)
+
+                self.alive = True
+                self.current_reconnect_attempts = 0
+                logger.info(f"[{self.tag}] Reconnected successfully")
+                return True
+
+            except Exception as e:
+                logger.error(f"[{self.tag}] Reconnect failed: {e}")
+                self.do_commands = False
+                self.alive = False
+                return False
+
+    def _handle_error(self, error: Exception) -> None:
+        """Handle error by calling registered error handlers"""
+        for handler in self.handlers.get("error", []):
+            try:
+                handler(error)
+            except Exception as e:
+                logger.error(f"[{self.tag}] Error handler failed: {e}")
+
+    def close(self, timeout: float = 5.0) -> None:
+        """
+        Gracefully close connection and stop listener.
+
+        Args:
+            timeout: Maximum time to wait for threads to finish
+        """
+        with self._lock:
+            if self._closed:
+                logger.debug(f"[{self.tag}] Already closed")
+                return
+
+            logger.info(f"[{self.tag}] Closing connection...")
+            self._closed = True
+
+        # 1. Сигнализируем о завершении
+        self._shutdown_event.set()
+        self.alive = False
+        self.do_commands = False
+
+        # 2. Закрываем сокет (это разблокирует receive())
+        try:
+            self.connection.close()
+        except Exception as e:
+            logger.warning(f"[{self.tag}] Error closing connection: {e}")
+
+        # 3. Ждём завершения потока приёма
+        if self._receiver_thread and self._receiver_thread.is_alive():
+            logger.debug(f"[{self.tag}] Waiting for receiver thread...")
+            self._receiver_thread.join(timeout=timeout)
+
+            if self._receiver_thread.is_alive():
+                logger.warning(f"[{self.tag}] Receiver thread did not stop in time")
+
+        # 4. Очищаем очередь сообщений
+        self._clear_queue()
+        self.client.info = {}
+        # 5. Очищаем обработчики (опционально)
+        # self.handlers.clear()
+        logger.info(f"[{self.tag}] Connection closed")
+
+    def _clear_queue(self) -> None:
+        """Clear message queue"""
+        try:
+            while True:
+                self.message_queue.get_nowait()
+        except queue.Empty:
+            pass
+
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup"""
+        self.close()
+        return False
+
+    def __del__(self):
+        """Destructor - last resort cleanup"""
+        if not self._closed:
+            try:
+                self.close(timeout=1.0)
+            except Exception:
+                pass
